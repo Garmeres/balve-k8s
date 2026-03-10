@@ -1,0 +1,9 @@
+apiVersion: v2
+name: balve-platform
+description: Installs the balve platform from scratch
+type: application
+version: 0.1.0
+dependencies:
+  - name: argo-cd
+    version: 9.1.6
+    repository: https://argoproj.github.io/argo-helm

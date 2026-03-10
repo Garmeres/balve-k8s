@@ -1,0 +1,8 @@
+targetRevision: main
+repoURL: https://github.com/garmeres/balve-k8s.git
+
+argo-cd:
+  global:
+    domain: ""
+  dex:
+    enabled: false
