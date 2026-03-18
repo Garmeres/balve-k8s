@@ -53,11 +53,15 @@ In the Hetzner console, go to _Object Storage_ -> _Manage credentials_ -> _Gener
 
 Go to the Domeneshop control panel -> _E-post_ -> _SMTP-innstillinger_ and note the username and password.
 
+From the GitHub OAuth App created in the ArgoCD step, get the **Client ID** and **Client Secret**.
+
 ```
 S3_KEY="<S3 Access Key>"
 S3_SECRET="<S3 Secret Key>"
 SMTP_USER="<SMTP username>"
 SMTP_PASS="<SMTP password>"
+GITHUB_CLIENT_ID="<Client ID>"
+GITHUB_CLIENT_SECRET="<Client Secret>"
 ```
 
 ### Fetch the public cert
@@ -114,6 +118,16 @@ kubectl create secret generic nextcloud-mariadb --namespace nextcloud --dry-run=
   > applications/nextcloud/templates/sealed-nextcloud-mariadb.yaml
 ```
 
+### ArgoCD
+
+```
+kubectl create secret generic argocd-dex-github --namespace argocd --dry-run=client \
+  --from-literal=clientID="$GITHUB_CLIENT_ID" \
+  --from-literal=clientSecret="$GITHUB_CLIENT_SECRET" \
+  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  > applications/argocd-config/templates/sealed-argocd-dex-github.yaml
+```
+
 ### Calendar Sync
 
 ```
@@ -132,4 +146,4 @@ git commit -m "Add sealed secrets"
 git push
 ```
 
-ArgoCD will sync the SealedSecret resources. The controller decrypts them into regular Kubernetes Secrets in each namespace.
+ArgoCD will sync the SealedSecret resources. The controller decrypts them into regular Kubernetes Secrets in each namespace. The ArgoCD Dex secret is picked up automatically — no redeploy needed.

@@ -22,14 +22,7 @@ Click _Register application_.
 
 On the next page, the **Client ID** is shown near the top. Click _Generate a new client secret_ — the secret is only shown once, copy it immediately.
 
-Open a terminal and run these two lines, replacing the values with what you just copied:
-
-```
-GITHUB_CLIENT_ID="<Client ID>"
-GITHUB_CLIENT_SECRET="<Client Secret>"
-```
-
-Keep this terminal open — the install step below uses these variables.
+Save both values — you will need them in the sealed secrets step.
 
 ## Install
 
@@ -39,8 +32,6 @@ From your local machine, in the root of the repo:
 cd argo-cd
 helm dependency build
 helm template argocd . -n argocd \
-  --set argo-cd.configs.secret.extra."dex\.github\.clientID"="$GITHUB_CLIENT_ID" \
-  --set argo-cd.configs.secret.extra."dex\.github\.clientSecret"="$GITHUB_CLIENT_SECRET" \
   | ssh balve-master 'kubectl apply -n argocd --server-side -f -'
 ```
 

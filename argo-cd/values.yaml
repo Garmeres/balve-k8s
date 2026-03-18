@@ -3,8 +3,6 @@ argo-cd:
     domain: argocd.dev.garmeres.com
 
   server:
-    extraArgs:
-      - --insecure
     ingress:
       enabled: true
       ingressClassName: traefik
@@ -25,8 +23,8 @@ argo-cd:
             id: github
             name: GitHub
             config:
-              clientID: $dex.github.clientID
-              clientSecret: $dex.github.clientSecret
+              clientID: $argocd-dex-github:clientID
+              clientSecret: $argocd-dex-github:clientSecret
               orgs:
                 - name: garmeres
               loadAllGroups: true
@@ -36,3 +34,6 @@ argo-cd:
       policy.csv: |
         g, garmeres:admins, role:admin
         g, garmeres:developers, role:readonly
+
+    params:
+      server.insecure: true
