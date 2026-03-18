@@ -29,32 +29,25 @@ Save both values — you will need them in the sealed secrets step.
 From your local machine, in the root of the repo:
 
 ```
-cd argo-cd
-helm dependency build
-helm template argocd . -n argocd \
+helm dependency build argo-cd
+helm template argocd argo-cd -n argocd \
   | ssh balve-master 'kubectl apply -n argocd --server-side -f -'
 ```
 
 ## Verify the installation
 
-SSH into the master node:
-
-```
-ssh balve-master
-```
-
 Wait for all pods to become ready:
 
 ```
-kubectl get pods -n argocd -w
+ssh balve-master 'kubectl get pods -n argocd -w'
 ```
 
 ## Apply the ApplicationSet
 
-Once all ArgoCD pods are running, apply the ApplicationSet from your local machine:
+Once all ArgoCD pods are running, apply the ApplicationSet:
 
 ```
-cat argo-cd/applicationset.yaml | ssh balve-master 'kubectl apply -f -'
+ssh balve-master 'kubectl apply -f -' < argo-cd/applicationset.yaml
 ```
 
 ## Access the ArgoCD UI
@@ -62,7 +55,7 @@ cat argo-cd/applicationset.yaml | ssh balve-master 'kubectl apply -f -'
 ArgoCD will pick up the ApplicationSet and begin syncing all applications. Wait for cert-manager to finish syncing:
 
 ```
-kubectl get applications -n argocd
+ssh balve-master 'kubectl get applications -n argocd'
 ```
 
 Once it shows `Synced` and `Healthy`, open [https://argocd.dev.garmeres.com](https://argocd.dev.garmeres.com) and log in with GitHub.

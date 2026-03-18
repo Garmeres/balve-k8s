@@ -5,7 +5,7 @@ Secrets are encrypted with [Sealed Secrets](https://sealed-secrets.netlify.app/)
 ## Install tools
 
 ```
-brew install kubectl kubeseal
+brew install kubeseal
 ```
 
 ## Wait for the controller
@@ -20,16 +20,18 @@ ssh balve-master 'kubectl get pods -n sealed-secrets -w'
 
 ## Path A: Restore existing signing key
 
-Use this path if you have a `signing-key-backup.yaml` from a previous cluster. The sealed secrets already committed in git will be decryptable.
+Use this path if you have the signing key backed up as a GitHub repository secret. The sealed secrets already committed in git will be decryptable.
+
+Download the `signing_key_backup` secret from _github.com/garmeres/balve-k8s/settings/secrets/actions_ and save it as `~/signing-key-backup.yaml`.
 
 Restore the key **before** the controller starts (or restart it after):
 
 ```
-cat signing-key-backup.yaml | ssh balve-master 'kubectl apply -f -'
+cat ~/signing-key-backup.yaml | ssh balve-master 'kubectl apply -f -'
 ssh balve-master 'kubectl rollout restart deployment -n sealed-secrets sealed-secrets'
 ```
 
-The controller picks up the restored key and decrypts the SealedSecrets already in git. **You're done.**
+The controller picks up the restored key and decrypts the SealedSecrets already in git. Delete the local copy and **you're done.**
 
 ---
 
@@ -42,10 +44,10 @@ Use this path on first setup, or if the signing key is lost. All secrets will be
 The controller's signing key is the only thing that can decrypt your secrets. Save it somewhere safe (password manager):
 
 ```
-ssh balve-master 'kubectl get secret -n sealed-secrets -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml' > signing-key-backup.yaml
+ssh balve-master 'kubectl get secret -n sealed-secrets -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml' > ~/signing-key-backup.yaml
 ```
 
-**Do not commit this file to git.** Store it in a password manager or other secure location.
+Store the contents as a repository secret named `signing_key_backup` in _github.com/garmeres/balve-k8s/settings/secrets/actions_, then delete the local copy.
 
 ### Credentials
 
@@ -68,7 +70,7 @@ GITHUB_CLIENT_SECRET="<Client Secret>"
 
 ```
 ssh balve-master 'kubectl get secret -n sealed-secrets -l sealedsecrets.bitnami.com/sealed-secrets-key -o jsonpath="{.items[0].data.tls\.crt}"' \
-  | base64 -d > sealed-secrets-cert.pem
+  | base64 -d > ~/sealed-secrets-cert.pem
 ```
 
 ### Seal the secrets
@@ -81,7 +83,7 @@ Run all commands below from the **root of the balve-k8s repo**.
 kubectl create secret generic strapi-s3 --namespace strapi --dry-run=client \
   --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
   --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
-  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/strapi/templates/sealed-strapi-s3.yaml
 
 kubectl create secret generic strapi-secrets --namespace strapi --dry-run=client \
@@ -90,7 +92,7 @@ kubectl create secret generic strapi-secrets --namespace strapi --dry-run=client
   --from-literal=ADMIN_JWT_SECRET="$(openssl rand -base64 16)" \
   --from-literal=TRANSFER_TOKEN_SALT="$(openssl rand -base64 16)" \
   --from-literal=ENCRYPTION_KEY="$(openssl rand -base64 16)" \
-  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/strapi/templates/sealed-strapi-secrets.yaml
 ```
 
@@ -100,7 +102,7 @@ kubectl create secret generic strapi-secrets --namespace strapi --dry-run=client
 kubectl create secret generic nextcloud-s3 --namespace nextcloud --dry-run=client \
   --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
   --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
-  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/nextcloud/templates/sealed-nextcloud-s3.yaml
 
 kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=client \
@@ -108,13 +110,13 @@ kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=cl
   --from-literal=password="$(openssl rand -base64 16)" \
   --from-literal=smtp-username="$SMTP_USER" \
   --from-literal=smtp-password="$SMTP_PASS" \
-  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/nextcloud/templates/sealed-nextcloud-admin.yaml
 
 kubectl create secret generic nextcloud-mariadb --namespace nextcloud --dry-run=client \
   --from-literal=mariadb-root-password="$(openssl rand -base64 16)" \
   --from-literal=mariadb-password="$(openssl rand -base64 16)" \
-  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/nextcloud/templates/sealed-nextcloud-mariadb.yaml
 ```
 
@@ -124,7 +126,7 @@ kubectl create secret generic nextcloud-mariadb --namespace nextcloud --dry-run=
 kubectl create secret generic argocd-dex-github --namespace argocd --dry-run=client \
   --from-literal=clientID="$GITHUB_CLIENT_ID" \
   --from-literal=clientSecret="$GITHUB_CLIENT_SECRET" \
-  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/argocd-config/templates/sealed-argocd-dex-github.yaml
 ```
 
@@ -134,7 +136,7 @@ kubectl create secret generic argocd-dex-github --namespace argocd --dry-run=cli
 kubectl create secret generic calendar-sync-s3 --namespace calendar-sync --dry-run=client \
   --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
   --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
-  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/calendar-sync/templates/sealed-calendar-sync-s3.yaml
 ```
 
