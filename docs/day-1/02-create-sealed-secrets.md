@@ -116,6 +116,7 @@ kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=cl
 kubectl create secret generic nextcloud-mariadb --namespace nextcloud --dry-run=client \
   --from-literal=mariadb-root-password="$(openssl rand -base64 16)" \
   --from-literal=mariadb-password="$(openssl rand -base64 16)" \
+  --from-literal=db-username="nextcloud" \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/nextcloud/templates/sealed-nextcloud-mariadb.yaml
 ```
