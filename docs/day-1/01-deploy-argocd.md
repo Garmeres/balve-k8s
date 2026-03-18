@@ -63,7 +63,7 @@ kubectl get pods -n argocd -w
 Once all ArgoCD pods are running, apply the ApplicationSet from your local machine:
 
 ```
-cat applicationset.yaml | ssh balve-master 'kubectl apply -f -'
+cat argo-cd/applicationset.yaml | ssh balve-master 'kubectl apply -f -'
 ```
 
 ## Access the ArgoCD UI
