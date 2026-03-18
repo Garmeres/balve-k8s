@@ -168,11 +168,20 @@ nextcloud:
       limits:
         memory: 1Gi
         cpu: 1
-    startupProbe:
-      httpGet:
-        path: /
-        port: 9980
-        scheme: HTTP
-      failureThreshold: 30
-      periodSeconds: 5
-      timeoutSeconds: 3
+    probes:
+      startup:
+        enabled: false
+      liveness:
+        enabled: true
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        timeoutSeconds: 30
+        successThreshold: 1
+        failureThreshold: 4
+      readiness:
+        enabled: true
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        timeoutSeconds: 30
+        successThreshold: 1
+        failureThreshold: 2
