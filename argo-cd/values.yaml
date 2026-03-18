@@ -3,6 +3,8 @@ argo-cd:
     domain: argocd.dev.garmeres.com
 
   server:
+    extraArgs:
+      - --insecure
     ingress:
       enabled: true
       ingressClassName: traefik
