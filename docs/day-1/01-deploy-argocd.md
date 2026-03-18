@@ -11,12 +11,12 @@ Go to _github.com/orgs/garmeres/teams_ and create:
 
 Go to _github.com/organizations/garmeres/settings/applications_ -> _New OAuth App_ and fill in:
 
-| Field                      | Value                                                |
-| -------------------------- | ---------------------------------------------------- |
-| Application name           | `ArgoCD`                                             |
-| Homepage URL               | `https://argocd.balve.garmeres.com`                  |
-| Authorization callback URL | `https://argocd.balve.garmeres.com/api/dex/callback` |
-| Enable Device Flow         | checked                                              |
+| Field                      | Value                                              |
+| -------------------------- | -------------------------------------------------- |
+| Application name           | `ArgoCD`                                           |
+| Homepage URL               | `https://argocd.dev.garmeres.com`                  |
+| Authorization callback URL | `https://argocd.dev.garmeres.com/api/dex/callback` |
+| Enable Device Flow         | checked                                            |
 
 Click _Register application_.
 
@@ -66,4 +66,4 @@ ArgoCD will pick up the ApplicationSet and begin syncing all applications. Wait 
 kubectl get applications -n argocd
 ```
 
-Once it shows `Synced` and `Healthy`, open [https://argocd.balve.garmeres.com](https://argocd.balve.garmeres.com) and log in with GitHub.
+Once it shows `Synced` and `Healthy`, open [https://argocd.dev.garmeres.com](https://argocd.dev.garmeres.com) and log in with GitHub.

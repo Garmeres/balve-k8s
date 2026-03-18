@@ -95,4 +95,8 @@ runcmd:
       systemctl restart ssh || systemctl restart sshd
 
       curl -sfL https://get.k3s.io | sh -s - server
+
+power_state:
+  mode: reboot
+  condition: true
 ```

@@ -138,4 +138,8 @@ runcmd:
       done
 
       curl -sfL https://get.k3s.io | sh -s - agent
+
+power_state:
+  mode: reboot
+  condition: true
 ```

@@ -3,7 +3,7 @@ repoURL: https://github.com/garmeres/balve-k8s.git
 
 argo-cd:
   global:
-    domain: argocd.balve.garmeres.com
+    domain: argocd.dev.garmeres.com
 
   server:
     ingress:
@@ -19,7 +19,7 @@ argo-cd:
   configs:
     cm:
       admin.enabled: "false"
-      url: https://argocd.balve.garmeres.com
+      url: https://argocd.dev.garmeres.com
       dex.config: |
         connectors:
           - type: github
