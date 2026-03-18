@@ -163,3 +163,11 @@ nextcloud:
       limits:
         memory: 1Gi
         cpu: 1
+    startupProbe:
+      httpGet:
+        path: /
+        port: 9980
+        scheme: HTTP
+      failureThreshold: 30
+      periodSeconds: 5
+      timeoutSeconds: 3
