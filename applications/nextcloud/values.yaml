@@ -68,6 +68,10 @@ nextcloud:
     host: nextcloud-mariadb
     database: nextcloud
     user: nextcloud
+    existingSecret:
+      enabled: true
+      secretName: nextcloud-mariadb
+      passwordKey: mariadb-password
 
   mariadb:
     enabled: true

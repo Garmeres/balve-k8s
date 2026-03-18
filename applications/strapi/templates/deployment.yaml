@@ -17,7 +17,7 @@ spec:
       initContainers:
         - name: litestream-restore
           image: litestream/litestream:0.5
-          args: ["restore", "-if-db-not-exists", "/data/data.db"]
+          args: ["restore", "-if-replica-exists", "-if-db-not-exists", "/data/data.db"]
           env:
             - name: LITESTREAM_ACCESS_KEY_ID
               valueFrom:
