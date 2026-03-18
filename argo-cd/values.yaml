@@ -26,14 +26,14 @@ argo-cd:
               clientID: $argocd-dex-github:clientID
               clientSecret: $argocd-dex-github:clientSecret
               orgs:
-                - name: garmeres
+                - name: Garmeres
               loadAllGroups: true
 
     rbac:
       policy.default: role:readonly
       policy.csv: |
-        g, garmeres:admins, role:admin
-        g, garmeres:developers, role:readonly
+        g, Garmeres:admins, role:admin
+        g, Garmeres:developers, role:readonly
 
     params:
       server.insecure: true
