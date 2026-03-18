@@ -70,6 +70,21 @@ write_files:
       PermitRootLogin prohibit-password
       UsePAM yes
 
+  - path: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+    permissions: "0644"
+    owner: root:root
+    content: |
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChartConfig
+      metadata:
+        name: traefik
+        namespace: kube-system
+      spec:
+        valuesContent: |-
+          additionalArguments:
+            - "--entryPoints.web.http.redirections.entryPoint.to=:443"
+            - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+
 runcmd:
   - |
       set -eux
