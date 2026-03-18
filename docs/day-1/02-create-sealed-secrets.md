@@ -67,61 +67,61 @@ ssh balve-master 'kubectl get secret -n sealed-secrets -l sealedsecrets.bitnami.
   | base64 -d > sealed-secrets-cert.pem
 ```
 
-### Seal function
-
-Add this helper to your terminal session:
-
-```
-seal() {
-  local app="$1" name="$2"
-  shift 2
-  kubectl create secret generic "$name" --namespace "$app" --dry-run=client "$@" -o yaml \
-    | kubeseal --cert sealed-secrets-cert.pem --format yaml \
-    > applications/"$app"/templates/sealed-"$name".yaml
-}
-```
+### Seal the secrets
 
 Run all commands below from the **root of the balve-k8s repo**.
 
 ### Strapi
 
 ```
-seal strapi strapi-s3 \
+kubectl create secret generic strapi-s3 --namespace strapi --dry-run=client \
   --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
-  --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET"
+  --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
+  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  > applications/strapi/templates/sealed-strapi-s3.yaml
 
-seal strapi strapi-secrets \
+kubectl create secret generic strapi-secrets --namespace strapi --dry-run=client \
   --from-literal=APP_KEYS="$(openssl rand -base64 16),$(openssl rand -base64 16)" \
   --from-literal=API_TOKEN_SALT="$(openssl rand -base64 16)" \
   --from-literal=ADMIN_JWT_SECRET="$(openssl rand -base64 16)" \
   --from-literal=TRANSFER_TOKEN_SALT="$(openssl rand -base64 16)" \
-  --from-literal=ENCRYPTION_KEY="$(openssl rand -base64 16)"
+  --from-literal=ENCRYPTION_KEY="$(openssl rand -base64 16)" \
+  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  > applications/strapi/templates/sealed-strapi-secrets.yaml
 ```
 
 ### Nextcloud
 
 ```
-seal nextcloud nextcloud-s3 \
+kubectl create secret generic nextcloud-s3 --namespace nextcloud --dry-run=client \
   --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
-  --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET"
+  --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
+  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  > applications/nextcloud/templates/sealed-nextcloud-s3.yaml
 
-seal nextcloud nextcloud-admin \
+kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=client \
   --from-literal=username="admin" \
   --from-literal=password="$(openssl rand -base64 16)" \
   --from-literal=smtp-username="$SMTP_USER" \
-  --from-literal=smtp-password="$SMTP_PASS"
+  --from-literal=smtp-password="$SMTP_PASS" \
+  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  > applications/nextcloud/templates/sealed-nextcloud-admin.yaml
 
-seal nextcloud nextcloud-mariadb \
+kubectl create secret generic nextcloud-mariadb --namespace nextcloud --dry-run=client \
   --from-literal=mariadb-root-password="$(openssl rand -base64 16)" \
-  --from-literal=mariadb-password="$(openssl rand -base64 16)"
+  --from-literal=mariadb-password="$(openssl rand -base64 16)" \
+  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  > applications/nextcloud/templates/sealed-nextcloud-mariadb.yaml
 ```
 
 ### Calendar Sync
 
 ```
-seal calendar-sync calendar-sync-s3 \
+kubectl create secret generic calendar-sync-s3 --namespace calendar-sync --dry-run=client \
   --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
-  --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET"
+  --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
+  -o yaml | kubeseal --cert sealed-secrets-cert.pem --format yaml \
+  > applications/calendar-sync/templates/sealed-calendar-sync-s3.yaml
 ```
 
 ### Commit and push

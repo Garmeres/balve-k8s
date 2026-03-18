@@ -4,8 +4,6 @@ metadata:
   name: strapi
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
-    nginx.ingress.kubernetes.io/limit-rps: "10"
-    nginx.ingress.kubernetes.io/limit-connections: "5"
 spec:
   ingressClassName: {{ .Values.ingressClassName }}
   rules:
