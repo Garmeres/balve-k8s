@@ -30,10 +30,10 @@ spec:
           selfHeal: true
         retry:
           backoff:
-            duration: 2m
+            duration: 30s
             factor: 2
             maxDuration: 10m
-          limit: 3
+          limit: 10
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true
