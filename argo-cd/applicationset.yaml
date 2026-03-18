@@ -2,25 +2,26 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: applications
+  namespace: argocd
 spec:
   generators:
     - git:
-        repoURL: {{ .Values.repoURL | required ".repoURL is required." }}
-        revision: {{ .Values.targetRevision | default "main" }}
+        repoURL: https://github.com/garmeres/balve-k8s.git
+        revision: main
         directories:
           - path: applications/*
   template:
     metadata:
-      name: '{{ "{{path.basename}}" }}'
+      name: "{{path.basename}}"
     spec:
       project: default
       source:
-        repoURL: {{ .Values.repoURL | required ".repoURL is required." }}
-        targetRevision: {{ .Values.targetRevision | default "main" }}
-        path: '{{ "{{path}}" }}'
+        repoURL: https://github.com/garmeres/balve-k8s.git
+        targetRevision: main
+        path: "{{path}}"
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{ "{{path.basename}}" }}'
+        namespace: "{{path.basename}}"
       syncPolicy:
         automated:
           prune: true

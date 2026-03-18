@@ -58,6 +58,14 @@ Wait for all pods to become ready:
 kubectl get pods -n argocd -w
 ```
 
+## Apply the ApplicationSet
+
+Once all ArgoCD pods are running, apply the ApplicationSet from your local machine:
+
+```
+cat applicationset.yaml | ssh balve-master 'kubectl apply -f -'
+```
+
 ## Access the ArgoCD UI
 
 ArgoCD will pick up the ApplicationSet and begin syncing all applications. Wait for cert-manager to finish syncing:
