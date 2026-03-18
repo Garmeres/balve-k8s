@@ -145,7 +145,7 @@ nextcloud:
     collabora:
       aliasgroups:
         - host: "https://dev.garmeres.com"
-      extra_params: "--o:ssl.enabled=false"
+      extra_params: "--o:ssl.enable=false --o:ssl.termination=true"
       server_name: collabora.dev.garmeres.com
     ingress:
       enabled: true
