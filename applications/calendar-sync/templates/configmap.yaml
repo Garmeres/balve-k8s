@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calendar-sync-script
+data:
+  sync.py: |
+    import urllib.request
+    import json
+    import icalendar
+    import recurring_ical_events
+    from datetime import datetime, timezone
+    from dateutil.relativedelta import relativedelta
+    import boto3
+    from os import environ
+
+    def fetch_ical(url):
+        with urllib.request.urlopen(url, timeout=30) as r:
+            return r.read().decode("utf-8")
+
+    def parse_events(ical_string):
+        cal = icalendar.Calendar.from_ical(ical_string)
+        now = datetime.now()
+        end = now + relativedelta(months=6)
+        events = []
+        for e in recurring_ical_events.of(cal).between(now, end):
+            start = e["DTSTART"].dt
+            end_dt = e["DTEND"].dt
+            td = end_dt - start
+            total = int(td.total_seconds())
+            h, rem = divmod(total, 3600)
+            m, s = divmod(rem, 60)
+            events.append({
+                "name": str(e.get("SUMMARY", "")),
+                "description": str(e.get("DESCRIPTION", "")),
+                "start": start.isoformat(),
+                "end": end_dt.isoformat(),
+                "duration": f"PT{h}H{m}M{s}S",
+                "location": str(e.get("LOCATION", "")),
+            })
+        events.sort(key=lambda x: x["start"])
+        return events
+
+    def main():
+        calendar_link = environ["CALENDAR_LINK"]
+        bucket = environ["BUCKET_NAME"]
+        per_page = int(environ.get("EVENTS_PER_PAGE", "10"))
+        endpoint = environ["S3_ENDPOINT"]
+        region = environ["S3_REGION"]
+        fetch_time = datetime.now(timezone.utc).isoformat()
+
+        events = parse_events(fetch_ical(calendar_link))
+        total = len(events)
+        total_pages = max(1, (total + per_page - 1) // per_page)
+
+        s3 = boto3.client("s3", endpoint_url=endpoint, region_name=region)
+
+        for i in range(total_pages):
+            page_events = events[i * per_page : min((i + 1) * per_page, total)]
+            s3.put_object(
+                Bucket=bucket,
+                Key=f"pages/{i}.json",
+                Body=json.dumps({
+                    "source-url": calendar_link,
+                    "last-updated": fetch_time,
+                    "events-in-page": len(page_events),
+                    "total-events": total,
+                    "page": i,
+                    "total-pages": total_pages,
+                    "per-page": per_page,
+                    "has-more": i + 1 < total_pages,
+                    "events": page_events,
+                }, ensure_ascii=False).encode("utf-8"),
+                ContentType="application/json",
+            )
+
+        s3.put_object(
+            Bucket=bucket,
+            Key="index.json",
+            Body=json.dumps({
+                "source-url": calendar_link,
+                "last-updated": fetch_time,
+                "total-events": total,
+                "total-pages": total_pages,
+                "per-page": per_page,
+                "events": events,
+            }, ensure_ascii=False).encode("utf-8"),
+            ContentType="application/json",
+        )
+
+        # Clean up stale pages
+        response = s3.list_objects_v2(Bucket=bucket, Prefix="pages/")
+        for obj in response.get("Contents", []):
+            key = obj["Key"]
+            try:
+                num = int(key.split("/")[1].split(".")[0])
+                if num >= total_pages:
+                    s3.delete_object(Bucket=bucket, Key=key)
+            except (ValueError, IndexError):
+                pass
+
+        print(f"Synced {total} events across {total_pages} pages")
+
+    main()

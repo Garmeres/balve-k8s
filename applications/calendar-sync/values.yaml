@@ -1,0 +1,10 @@
+calendarLink: "http://nextcloud.nextcloud.svc.cluster.local/remote.php/dav/public-calendars/DG8C8Ys63r3x2qSx?export"
+eventsPerPage: 10
+schedule: "0 */6 * * *"
+
+s3Secret: calendar-sync-s3
+
+s3:
+  endpoint: "https://hel1.your-objectstorage.com"
+  region: "hel1"
+  bucket: "balve-calendar"

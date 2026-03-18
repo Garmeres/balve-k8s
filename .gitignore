@@ -1,2 +1,4 @@
 **/Chart.lock
 **/charts/
+signing-key-backup.yaml
+sealed-secrets-cert.pem

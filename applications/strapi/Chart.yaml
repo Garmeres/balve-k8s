@@ -1,0 +1,5 @@
+apiVersion: v2
+name: strapi
+description: Self-hosted Strapi CMS
+type: application
+version: 0.1.0

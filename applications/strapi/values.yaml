@@ -1,0 +1,24 @@
+image:
+  repository: ghcr.io/garmeres/balve-strapi
+  tag: latest
+
+host: edit.garmeres.com
+ingressClassName: traefik
+
+existingSecret: strapi-secrets
+
+s3Secret: strapi-s3
+
+s3:
+  endpoint: https://hel1.your-objectstorage.com
+  region: "hel1"
+  bucket: "balve-strapi"
+  cdnUrl: "https://balve-strapi.hel1.your-objectstorage.com"
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 50m
+  limits:
+    memory: 512Mi
+    cpu: 500m

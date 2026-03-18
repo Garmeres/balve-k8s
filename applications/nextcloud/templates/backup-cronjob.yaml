@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nextcloud-db-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: nextcloud-db-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: alpine:3.20
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  apk add --no-cache mariadb-client aws-cli
+                  mysqldump -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud | gzip | \
+                    aws s3 cp - "s3://{{ .Values.nextcloud.nextcloud.objectStore.s3.bucket }}/backups/nextcloud-$(date +%Y%m%d-%H%M%S).sql.gz" \
+                      --endpoint-url "https://{{ .Values.nextcloud.nextcloud.objectStore.s3.host }}" \
+                      --region "{{ .Values.nextcloud.nextcloud.objectStore.s3.region }}"
+              env:
+                - name: DB_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: "{{ .Release.Name }}-mariadb"
+                      key: mariadb-password
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.nextcloud.nextcloud.objectStore.s3.existingSecret }}
+                      key: {{ .Values.nextcloud.nextcloud.objectStore.s3.secretKeys.accessKey }}
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.nextcloud.nextcloud.objectStore.s3.existingSecret }}
+                      key: {{ .Values.nextcloud.nextcloud.objectStore.s3.secretKeys.secretKey }}
+              resources:
+                requests:
+                  memory: 64Mi
+                  cpu: 50m
+                limits:
+                  memory: 256Mi
+                  cpu: 200m

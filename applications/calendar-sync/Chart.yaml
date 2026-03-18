@@ -1,0 +1,5 @@
+apiVersion: v2
+name: calendar-sync
+description: Syncs a Nextcloud public calendar to S3 as JSON
+type: application
+version: 0.1.0

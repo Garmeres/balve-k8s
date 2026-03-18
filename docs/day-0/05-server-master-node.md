@@ -52,7 +52,7 @@ users:
     shell: /bin/bash
     lock_passwd: true
     ssh_authorized_keys:
-      - <PUBLIC SSH KEY>
+      - <SSH PUBLIC KEY>
 
 packages:
   - curl

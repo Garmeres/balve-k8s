@@ -3,6 +3,37 @@ repoURL: https://github.com/garmeres/balve-k8s.git
 
 argo-cd:
   global:
-    domain: ""
+    domain: argocd.balve.garmeres.com
+
+  server:
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+      tls: true
+
   dex:
-    enabled: false
+    enabled: true
+
+  configs:
+    cm:
+      admin.enabled: "false"
+      url: https://argocd.balve.garmeres.com
+      dex.config: |
+        connectors:
+          - type: github
+            id: github
+            name: GitHub
+            config:
+              clientID: $dex.github.clientID
+              clientSecret: $dex.github.clientSecret
+              orgs:
+                - name: garmeres
+              loadAllGroups: true
+
+    rbac:
+      policy.default: role:readonly
+      policy.csv: |
+        g, garmeres:admins, role:admin
+        g, garmeres:developers, role:readonly
