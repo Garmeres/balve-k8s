@@ -45,6 +45,11 @@ nextcloud:
           ),
           'forwarded_for_headers' => array('HTTP_X_FORWARDED_FOR'),
           'overwriteprotocol' => 'https',
+          'trusted_domains' => array(
+            0 => 'dev.garmeres.com',
+            1 => 'localhost',
+          ),
+          'overwrite.cli.url' => 'https://dev.garmeres.com',
         );
 
   ingress:
@@ -105,9 +110,6 @@ nextcloud:
     initialDelaySeconds: 30
     periodSeconds: 10
     failureThreshold: 30
-    httpHeaders:
-      - name: Host
-        value: dev.garmeres.com
 
   lifecycle:
     postStartCommand:
