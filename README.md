@@ -23,7 +23,7 @@ Kubernetes infrastructure for [Garmeres](https://garmeres.com). Runs on two Hetz
 
 ## Setup guide
 
-Follow the docs in order:
+### Day 0 — Infrastructure
 
 1. [Networks](docs/day-0/01-networks.md)
 2. [Placement groups](docs/day-0/02-servers-placement-groups.md)
@@ -34,5 +34,8 @@ Follow the docs in order:
 7. [Worker node](docs/day-0/07-server-worker-node.md)
 8. [DNS records](docs/day-0/08-dns-records.md)
 9. [Object storage](docs/day-0/09-create-object-storage.md)
-10. [Deploy ArgoCD](docs/day-0/10-deploy-argocd.md)
-11. [Sealed secrets](docs/day-0/11-create-sealed-secrets.md)
+
+### Day 1 — Platform
+
+1. [Deploy ArgoCD](docs/day-1/01-deploy-argocd.md)
+2. [Sealed secrets](docs/day-1/02-create-sealed-secrets.md)
