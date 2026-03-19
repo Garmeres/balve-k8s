@@ -51,6 +51,10 @@ nextcloud:
             2 => 'nextcloud.nextcloud.svc.cluster.local',
           ),
           'overwrite.cli.url' => 'https://balve.garmeres.com',
+          'allow_local_remote_servers' => true,
+          'server_id' => 'balve-k8s',
+          'default_phone_region' => 'NO',
+          'maintenance_window_start' => 1,
         );
 
   ingress:
