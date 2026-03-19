@@ -101,7 +101,8 @@ nextcloud:
     enabled: true
     auth:
       enabled: true
-      password: "nextcloud-redis"
+      existingSecret: nextcloud-redis
+      existingSecretPasswordKey: redis-password
     master:
       persistence:
         enabled: false

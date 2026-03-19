@@ -1,0 +1,12 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: nextcloud-redis
+  namespace: nextcloud
+spec:
+  encryptedData:
+    redis-password: AgCb6OcskmWUVVcqsCCKaWv0k3XOBw6JIx7i+CjJssJt94exSJdxi8h9PsBmzK8xxLl/wsQMQFt9dRZKeUGH4NeBmy3SVWCCwnTd+FRmN+EkNdq3/YHw30067NxEeOfCRLSjPm1JrVJqVMNclEUR00F9yHweyA0EMa8X52fe2ki1V4RLy+rTQ8kdJk8uaSbEadn1A4EAilDnu7lqKPEPd5nWMQABeS9lp5gL2tyF9NQJfd/pz2z3Y4HZpWF0iGOzcbwjfTuXVBTwHZucKXQ/ZG5hvLnhYMfJ8fpWO8hxmY9XAFt8X/V29CDyPVnac0ZAFP7Yu2B6tTnmoiujloa7ag8DS7GJC3gVVMr2JgSF1KUj2uDH4AyMjf76GmM3pUYeYbqi1JvEgHow6PvP5ez9Qfs4APa3n+pY7C/MRcjJdZNvRNMj8HHmyaUMrT6yEhJeKsvxvz0TutrM7LyE6IhnlbKc0O9bjLUe71MYNRIraNz03BlhVjCzhFDXWCqs47v86136FTogbmB3w1Jbd9eU3bYk0+Q+yNGXiAr/1BHtriCTlSs7rL74P4d8sSx5zEJWC6QVssOqUpOyB0GfZAxuBr/CJdmoIHtcWGkq76T30rquivCINWzP0getkX8zvwSuv7Bz7CurhtXKGsSXp4wH9n4mEBSnkl9sB0S3XTnJJimLyYeerHje2MLoYbwx2f033xs4GXtwhdEtGFVgqtv+gob20UhUwVMgTw+KkBa3h7Vrzw==
+  template:
+    metadata:
+      name: nextcloud-redis
+      namespace: nextcloud

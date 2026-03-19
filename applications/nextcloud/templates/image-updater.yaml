@@ -43,7 +43,7 @@ spec:
           serviceAccountName: image-updater
           containers:
           - name: check
-            image: bitnami/kubectl:latest
+            image: bitnami/kubectl:1.33
             command: ["/bin/sh"]
             args:
             - -c
