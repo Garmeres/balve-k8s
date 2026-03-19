@@ -124,6 +124,11 @@ kubectl create secret generic nextcloud-mariadb --namespace nextcloud --dry-run=
   --from-literal=db-username="nextcloud" \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/nextcloud/templates/sealed-nextcloud-mariadb.yaml
+
+kubectl create secret generic nextcloud-redis --namespace nextcloud --dry-run=client \
+  --from-literal=redis-password="$(openssl rand -base64 24)" \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/nextcloud/templates/sealed-nextcloud-redis.yaml
 ```
 
 ### ArgoCD

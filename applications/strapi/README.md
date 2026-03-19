@@ -8,7 +8,7 @@ See [08-create-object-storage.md](../../docs/day-0/08-create-object-storage.md) 
 
 ## Backups
 
-The SQLite database is backed up to S3 every other day (even days) at 3:00 AM. Backups are retained for 28 days (~14 backups). Backup files are stored at `s3://balve-strapi/backups/strapi-YYYYMMDD.db.gz`.
+The SQLite database is backed up to S3 every other day (odd days) at 23:00 UTC. Backups are retained for 28 days (~14 backups). Backup files are stored at `s3://balve-strapi/backups/strapi-YYYYMMDD.db.gz`.
 
 ## Restore
 
