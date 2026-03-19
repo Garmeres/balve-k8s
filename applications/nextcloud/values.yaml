@@ -1,6 +1,9 @@
 nextcloud:
   nextcloud:
     host: balve.garmeres.com
+    image:
+      tag: stable-apache
+      pullPolicy: Always
     existingSecret:
       enabled: true
       secretName: nextcloud-admin
