@@ -5,10 +5,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+    type: Recreate
   selector:
     matchLabels:
       app: strapi
@@ -17,27 +14,6 @@ spec:
       labels:
         app: strapi
     spec:
-      initContainers:
-        - name: litestream-restore
-          image: litestream/litestream:0.5
-          args: ["restore", "-if-replica-exists", "-if-db-not-exists", "/data/data.db"]
-          env:
-            - name: LITESTREAM_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.s3Secret }}
-                  key: S3_ACCESS_KEY_ID
-            - name: LITESTREAM_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.s3Secret }}
-                  key: S3_SECRET_ACCESS_KEY
-          volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: litestream-config
-              mountPath: /etc/litestream.yml
-              subPath: litestream.yml
       containers:
         - name: strapi
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -99,15 +75,9 @@ spec:
                   name: {{ .Values.existingSecret }}
                   key: ENCRYPTION_KEY
             - name: SMTP_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.existingSecret }}
-                  key: SMTP_HOST
+              value: "smtp.domeneshop.no"
             - name: SMTP_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.existingSecret }}
-                  key: SMTP_PORT
+              value: "587"
             - name: SMTP_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -141,36 +111,7 @@ spec:
               mountPath: /data
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-        - name: litestream
-          image: litestream/litestream:0.5
-          args: ["replicate"]
-          env:
-            - name: LITESTREAM_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.s3Secret }}
-                  key: S3_ACCESS_KEY_ID
-            - name: LITESTREAM_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.s3Secret }}
-                  key: S3_SECRET_ACCESS_KEY
-          volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: litestream-config
-              mountPath: /etc/litestream.yml
-              subPath: litestream.yml
-          resources:
-            requests:
-              memory: 16Mi
-              cpu: 10m
-            limits:
-              memory: 64Mi
-              cpu: 50m
       volumes:
         - name: data
-          emptyDir: {}
-        - name: litestream-config
-          configMap:
-            name: litestream
+          persistentVolumeClaim:
+            claimName: strapi-data
