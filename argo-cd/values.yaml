@@ -17,6 +17,7 @@ argo-cd:
     cm:
       admin.enabled: "false"
       url: https://argocd.balve.garmeres.com
+      ui.theme: auto
       dex.config: |
         connectors:
           - type: github
