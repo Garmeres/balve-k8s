@@ -17,7 +17,6 @@ argo-cd:
     cm:
       admin.enabled: "false"
       url: https://argocd.balve.garmeres.com
-      server.contentSecurityPolicy: "frame-ancestors 'self' https://balve.garmeres.com"
       dex.config: |
         connectors:
           - type: github
@@ -38,4 +37,5 @@ argo-cd:
 
     params:
       server.insecure: true
-      server.x-frame-options: "SAMEORIGIN"
+      server.x.frame.options: "SAMEORIGIN"
+      server.content.security.policy: "frame-ancestors 'self' https://balve.garmeres.com"
