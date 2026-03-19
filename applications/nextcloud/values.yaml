@@ -52,7 +52,6 @@ nextcloud:
           ),
           'overwrite.cli.url' => 'https://balve.garmeres.com',
           'allow_local_remote_servers' => true,
-          'server_id' => 'balve-k8s',
           'serverid' => 1,
           'default_phone_region' => 'NO',
           'maintenance_window_start' => 1,
