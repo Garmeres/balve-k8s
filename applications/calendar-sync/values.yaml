@@ -1,9 +1,9 @@
 calendarLink: "http://nextcloud.nextcloud.svc.cluster.local:8080/remote.php/dav/public-calendars/DG8C8Ys63r3x2qSx?export"
 eventsPerPage: 10
-schedule: "0 */6 * * *"
 
 targets:
   - name: hetzner
+    schedule: "0 */6 * * *"
     s3Secret: calendar-sync-s3
     s3:
       endpoint: "https://hel1.your-objectstorage.com"
@@ -11,6 +11,7 @@ targets:
       bucket: "balve-calendar"
 
   - name: aws
+    schedule: "5 */6 * * *"
     s3Secret: calendar-sync-aws-s3
     cloudfrontDistributionId: "E2D0IEYH7SFG25"
     s3:
