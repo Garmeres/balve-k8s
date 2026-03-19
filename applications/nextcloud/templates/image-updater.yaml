@@ -54,7 +54,7 @@ spec:
               TOKEN=$(curl -sf "https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/nextcloud:pull" | sed 's/.*"token":"\([^"]*\)".*/\1/')
               REMOTE=$(curl -sf -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.docker.distribution.manifest.list.v2+json" \
                 -D - -o /dev/null \
-                "https://registry-1.docker.io/v2/library/nextcloud/manifests/33-apache" \
+                "https://registry-1.docker.io/v2/library/nextcloud/manifests/{{ .Values.nextcloud.image.tag }}" \
                 | grep -i docker-content-digest | awk '{print $2}' | tr -d '\r')
 
               if [ -z "$REMOTE" ]; then
