@@ -92,6 +92,10 @@ kubectl create secret generic strapi-secrets --namespace strapi --dry-run=client
   --from-literal=ADMIN_JWT_SECRET="$(openssl rand -base64 16)" \
   --from-literal=TRANSFER_TOKEN_SALT="$(openssl rand -base64 16)" \
   --from-literal=ENCRYPTION_KEY="$(openssl rand -base64 16)" \
+  --from-literal=SMTP_HOST="smtp.domeneshop.no" \
+  --from-literal=SMTP_PORT="587" \
+  --from-literal=SMTP_USERNAME="$SMTP_USER" \
+  --from-literal=SMTP_PASSWORD="$SMTP_PASS" \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/strapi/templates/sealed-strapi-secrets.yaml
 ```
