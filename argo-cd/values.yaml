@@ -8,6 +8,7 @@ argo-cd:
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
+        traefik.io/middlewares: argocd-argocd-rate-limit@kubernetescrd
       tls: true
 
   dex:
@@ -18,6 +19,10 @@ argo-cd:
       admin.enabled: "false"
       url: https://argocd.balve.garmeres.com
       ui.theme: auto
+      users.anonymous.enabled: "true"
+      ui.bannercontent: "This dashboard shows the health status of the Balve platform. Log in at https://argocd.balve.garmeres.com/login for full access."
+      ui.bannerpermanent: "true"
+      ui.bannerposition: "top"
       dex.config: |
         connectors:
           - type: github
@@ -31,8 +36,18 @@ argo-cd:
               loadAllGroups: true
 
     rbac:
-      policy.default: role:readonly
+      policy.default: role:anonymous
       policy.csv: |
+        p, role:anonymous, applications, get, */*, allow
+        p, role:anonymous, logs, get, */*, deny
+        p, role:anonymous, exec, create, */*, deny
+        p, role:anonymous, repositories, *, *, deny
+        p, role:anonymous, clusters, *, *, deny
+        p, role:anonymous, certificates, *, *, deny
+        p, role:anonymous, accounts, *, *, deny
+        p, role:anonymous, gpgkeys, *, *, deny
+        p, role:anonymous, projects, *, *, deny
+        p, role:anonymous, extensions, invoke, */*, deny
         g, Garmeres:admins, role:admin
         g, Garmeres:developers, role:readonly
 
