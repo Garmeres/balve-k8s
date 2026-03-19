@@ -12,7 +12,7 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           containers:
             - name: sync
               image: python:3.12-alpine
