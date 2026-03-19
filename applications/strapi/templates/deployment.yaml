@@ -89,6 +89,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.existingSecret }}
                   key: SMTP_PASSWORD
+            - name: FRAME_ANCESTORS
+              value: {{ .Values.frameAncestors | quote }}
           startupProbe:
             httpGet:
               path: /_health

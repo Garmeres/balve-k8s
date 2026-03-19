@@ -4,6 +4,7 @@ image:
 
 host: strapi.balve.garmeres.com
 ingressClassName: traefik
+frameAncestors: https://balve.garmeres.com
 
 existingSecret: strapi-secrets
 
