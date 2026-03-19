@@ -1,6 +1,6 @@
 nextcloud:
   image:
-    tag: stable-apache
+    tag: 33-apache
     pullPolicy: Always
   nextcloud:
     host: balve.garmeres.com
