@@ -12,7 +12,7 @@ targets:
 
   - name: aws
     s3Secret: calendar-sync-aws-s3
-    cloudfrontDistributionId: "" # Fill in the CloudFront distribution ID
+    cloudfrontDistributionId: "E2D0IEYH7SFG25"
     s3:
       # AWS S3 uses the default endpoint
       endpoint: "https://s3.eu-north-1.amazonaws.com"
