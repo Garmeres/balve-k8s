@@ -51,9 +51,11 @@ spec:
               set -e
 
               # Get the remote digest from Docker Hub
-              TOKEN=$(wget -qO- "https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/nextcloud:pull" | sed 's/.*"token":"\([^"]*\)".*/\1/')
-              REMOTE=$(wget -qO- --header="Authorization: Bearer $TOKEN" --header="Accept: application/vnd.docker.distribution.manifest.list.v2+json" \
-                "https://registry-1.docker.io/v2/library/nextcloud/manifests/stable-apache" 2>&1 | grep -i docker-content-digest | head -1 | awk '{print $2}' | tr -d '\r')
+              TOKEN=$(curl -sf "https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/nextcloud:pull" | sed 's/.*"token":"\([^"]*\)".*/\1/')
+              REMOTE=$(curl -sf -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.docker.distribution.manifest.list.v2+json" \
+                -D - -o /dev/null \
+                "https://registry-1.docker.io/v2/library/nextcloud/manifests/stable-apache" \
+                | grep -i docker-content-digest | awk '{print $2}' | tr -d '\r')
 
               if [ -z "$REMOTE" ]; then
                 echo "ERROR: Could not fetch remote digest"
