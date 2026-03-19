@@ -108,7 +108,7 @@ spec:
             failureThreshold: 3
           volumeMounts:
             - name: data
-              mountPath: /data
+              mountPath: /app/data
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
