@@ -11,12 +11,12 @@ Go to _github.com/orgs/garmeres/teams_ and create:
 
 Go to _github.com/organizations/garmeres/settings/applications_ -> _New OAuth App_ and fill in:
 
-| Field                      | Value                                              |
-| -------------------------- | -------------------------------------------------- |
-| Application name           | `ArgoCD`                                           |
+| Field                      | Value                                                |
+| -------------------------- | ---------------------------------------------------- |
+| Application name           | `ArgoCD`                                             |
 | Homepage URL               | `https://argocd.balve.garmeres.com`                  |
 | Authorization callback URL | `https://argocd.balve.garmeres.com/api/dex/callback` |
-| Enable Device Flow         | checked                                            |
+| Enable Device Flow         | checked                                              |
 
 Click _Register application_.
 

@@ -98,6 +98,23 @@ data:
             except (ValueError, IndexError):
                 pass
 
+        # Invalidate CloudFront cache if distribution ID is set
+        distribution_id = environ.get("DISTRIBUTION_ID")
+        if distribution_id:
+            cf = boto3.client("cloudfront", region_name=region)
+            cf.create_invalidation(
+                DistributionId=distribution_id,
+                InvalidationBatch={
+                    "Paths": {"Quantity": 1, "Items": ["/*"]},
+                    "CallerReference": str(datetime.now(timezone.utc)),
+                },
+            )
+            print(f"CloudFront cache invalidated for {distribution_id}")
+
+        print(f"Synced {total} events to {bucket} ({total_pages} pages)")
+
+    main()
+
         print(f"Synced {total} events across {total_pages} pages")
 
     main()

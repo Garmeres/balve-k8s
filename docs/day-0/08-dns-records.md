@@ -4,7 +4,7 @@ At your DNS provider, create A records pointing to the **worker node's public IP
 
 Only the worker node has ports 80/443 open (via `firewall-2`).
 
-| Hostname             | Type | Value              |
-| -------------------- | ---- | ------------------ |
+| Hostname               | Type | Value              |
+| ---------------------- | ---- | ------------------ |
 | `balve.garmeres.com`   | A    | _worker public IP_ |
 | `*.balve.garmeres.com` | A    | _worker public IP_ |

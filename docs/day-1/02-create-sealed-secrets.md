@@ -142,6 +142,23 @@ kubectl create secret generic calendar-sync-s3 --namespace calendar-sync --dry-r
   > applications/calendar-sync/templates/sealed-calendar-sync-s3.yaml
 ```
 
+### Calendar Sync (AWS - backwards compat)
+
+Temporary secret for syncing to the old AWS S3 bucket + CloudFront. Remove this when the old frontend is retired.
+
+Create an IAM user `calendar-sync-k8s` in the AWS Console with a policy allowing `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject`, `s3:ListBucket` on `garmeres-calendar-sync-events-bucket` and `cloudfront:CreateInvalidation`. Generate an access key.
+
+```
+AWS_KEY="<AWS Access Key ID>"
+AWS_SECRET="<AWS Secret Access Key>"
+
+kubectl create secret generic calendar-sync-aws-s3 --namespace calendar-sync --dry-run=client \
+  --from-literal=S3_ACCESS_KEY_ID="$AWS_KEY" \
+  --from-literal=S3_SECRET_ACCESS_KEY="$AWS_SECRET" \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/calendar-sync/templates/sealed-calendar-sync-aws-s3.yaml
+```
+
 ### Commit and push
 
 ```

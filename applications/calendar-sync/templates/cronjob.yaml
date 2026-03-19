@@ -1,9 +1,10 @@
+{{- range .Values.targets }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: calendar-sync
+  name: calendar-sync-{{ .name }}
 spec:
-  schedule: {{ .Values.schedule | quote }}
+  schedule: {{ $.Values.schedule | quote }}
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -21,25 +22,29 @@ spec:
                 - pip install --no-cache-dir icalendar recurring-ical-events python-dateutil boto3 && python /scripts/sync.py
               env:
                 - name: CALENDAR_LINK
-                  value: {{ .Values.calendarLink | quote }}
+                  value: {{ $.Values.calendarLink | quote }}
                 - name: BUCKET_NAME
-                  value: {{ .Values.s3.bucket | quote }}
+                  value: {{ .s3.bucket | quote }}
                 - name: S3_ENDPOINT
-                  value: {{ .Values.s3.endpoint | quote }}
+                  value: {{ .s3.endpoint | quote }}
                 - name: S3_REGION
-                  value: {{ .Values.s3.region | quote }}
+                  value: {{ .s3.region | quote }}
                 - name: EVENTS_PER_PAGE
-                  value: {{ .Values.eventsPerPage | quote }}
+                  value: {{ $.Values.eventsPerPage | quote }}
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:
-                      name: {{ .Values.s3Secret }}
+                      name: {{ .s3Secret }}
                       key: S3_ACCESS_KEY_ID
                 - name: AWS_SECRET_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: {{ .Values.s3Secret }}
+                      name: {{ .s3Secret }}
                       key: S3_SECRET_ACCESS_KEY
+                {{- if .cloudfrontDistributionId }}
+                - name: DISTRIBUTION_ID
+                  value: {{ .cloudfrontDistributionId | quote }}
+                {{- end }}
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
@@ -54,3 +59,5 @@ spec:
             - name: scripts
               configMap:
                 name: calendar-sync-script
+---
+{{- end }}
