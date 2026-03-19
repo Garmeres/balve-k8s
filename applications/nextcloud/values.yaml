@@ -58,7 +58,6 @@ nextcloud:
           'serverid' => 1,
           'default_phone_region' => 'NO',
           'maintenance_window_start' => 1,
-          'updatechecker' => false,
         );
 
   ingress:
