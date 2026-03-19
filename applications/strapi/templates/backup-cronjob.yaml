@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: strapi-db-backup
 spec:
-  schedule: "0 3 2-30/2 * *"
+  schedule: "0 23 1-29/2 * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
