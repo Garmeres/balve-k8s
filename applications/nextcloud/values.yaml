@@ -48,6 +48,7 @@ nextcloud:
           'trusted_domains' => array(
             0 => 'balve.garmeres.com',
             1 => 'localhost',
+            2 => 'nextcloud.nextcloud.svc.cluster.local',
           ),
           'overwrite.cli.url' => 'https://balve.garmeres.com',
         );
