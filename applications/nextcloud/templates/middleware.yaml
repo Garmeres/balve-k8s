@@ -5,3 +5,23 @@ metadata:
 spec:
   buffering:
     maxRequestBodyBytes: 10737418240
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: nextcloud-headers
+spec:
+  headers:
+    stsSeconds: 15552000
+    stsIncludeSubdomains: true
+    stsPreload: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: nextcloud-chain
+spec:
+  chain:
+    middlewares:
+      - name: nextcloud-body-size
+      - name: nextcloud-headers

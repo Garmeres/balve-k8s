@@ -58,7 +58,7 @@ nextcloud:
     className: traefik
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt
-      traefik.ingress.kubernetes.io/router.middlewares: nextcloud-nextcloud-body-size@kubernetescrd
+      traefik.ingress.kubernetes.io/router.middlewares: nextcloud-nextcloud-chain@kubernetescrd
     tls:
       - secretName: nextcloud-tls
         hosts:
