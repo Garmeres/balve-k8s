@@ -4,6 +4,7 @@ metadata:
   name: strapi
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.middlewares: strapi-strapi-headers@kubernetescrd
 spec:
   ingressClassName: {{ .Values.ingressClassName }}
   rules:

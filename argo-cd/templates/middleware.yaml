@@ -6,3 +6,22 @@ spec:
   rateLimit:
     average: 50
     burst: 100
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: argocd-headers
+spec:
+  headers:
+    customResponseHeaders:
+      Alt-Svc: clear
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: argocd-chain
+spec:
+  chain:
+    middlewares:
+      - name: argocd-rate-limit
+      - name: argocd-headers

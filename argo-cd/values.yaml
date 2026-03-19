@@ -8,7 +8,7 @@ argo-cd:
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
-        traefik.io/middlewares: argocd-argocd-rate-limit@kubernetescrd
+        traefik.io/middlewares: argocd-argocd-chain@kubernetescrd
       tls: true
 
   dex:
@@ -19,10 +19,6 @@ argo-cd:
       admin.enabled: "false"
       url: https://argocd.balve.garmeres.com
       ui.theme: auto
-      users.anonymous.enabled: "true"
-      ui.bannercontent: "This dashboard shows the health status of the Balve platform. Log in at https://argocd.balve.garmeres.com/login for full access."
-      ui.bannerpermanent: "true"
-      ui.bannerposition: "top"
       dex.config: |
         connectors:
           - type: github
@@ -34,22 +30,51 @@ argo-cd:
               orgs:
                 - name: Garmeres
               loadAllGroups: true
+          - type: oidc
+            id: nextcloud
+            name: Nextcloud
+            config:
+              issuer: https://balve.garmeres.com
+              clientID: $argocd-dex-nextcloud:clientID
+              clientSecret: $argocd-dex-nextcloud:clientSecret
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              getUserInfo: true
+              insecureEnableGroups: true
+              claimMapping:
+                groups: nc_groups
 
     rbac:
-      policy.default: role:anonymous
+      policy.default: role:viewer
       policy.csv: |
-        p, role:anonymous, applications, get, */*, allow
-        p, role:anonymous, logs, get, */*, deny
-        p, role:anonymous, exec, create, */*, deny
-        p, role:anonymous, repositories, *, *, deny
-        p, role:anonymous, clusters, *, *, deny
-        p, role:anonymous, certificates, *, *, deny
-        p, role:anonymous, accounts, *, *, deny
-        p, role:anonymous, gpgkeys, *, *, deny
-        p, role:anonymous, projects, *, *, deny
-        p, role:anonymous, extensions, invoke, */*, deny
+        p, role:viewer, applications, get, */*, allow
+        p, role:viewer, logs, get, */*, deny
+        p, role:viewer, exec, create, */*, deny
+        p, role:viewer, repositories, *, *, deny
+        p, role:viewer, clusters, *, *, deny
+        p, role:viewer, certificates, *, *, deny
+        p, role:viewer, accounts, *, *, deny
+        p, role:viewer, gpgkeys, *, *, deny
+        p, role:viewer, projects, *, *, deny
+        p, role:viewer, extensions, invoke, */*, deny
+        p, role:developer, applications, get, */*, allow
+        p, role:developer, applications, sync, */*, allow
+        p, role:developer, applications, action/*, */*, allow
+        p, role:developer, logs, get, */*, allow
+        p, role:developer, exec, create, */*, deny
+        p, role:developer, repositories, get, *, allow
+        p, role:developer, clusters, get, *, allow
+        p, role:developer, certificates, get, *, allow
+        p, role:developer, projects, get, *, allow
+        p, role:developer, accounts, *, *, deny
+        p, role:developer, gpgkeys, *, *, deny
+        p, role:developer, extensions, invoke, */*, deny
         g, Garmeres:admins, role:admin
-        g, Garmeres:developers, role:readonly
+        g, Garmeres:developers, role:developer
+        g, Technical, role:developer
 
     params:
       server.insecure: true

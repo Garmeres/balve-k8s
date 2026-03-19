@@ -41,6 +41,9 @@ nextcloud:
         port: 465
         authtype: LOGIN
 
+    phpConfigs:
+      session-nolock.ini: |
+        redis.session.locking_enabled=0
     configs:
       proxy.config.php: |-
         <?php
@@ -155,11 +158,11 @@ nextcloud:
         for app in
         calendar
         drop_account
-        event_update_notification
         external
         forms
         group_everyone
         impersonate
+        oidc
         passwords
         polls
         richdocuments
