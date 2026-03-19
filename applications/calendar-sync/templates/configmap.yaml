@@ -114,7 +114,3 @@ data:
         print(f"Synced {total} events to {bucket} ({total_pages} pages)")
 
     main()
-
-        print(f"Synced {total} events across {total_pages} pages")
-
-    main()
