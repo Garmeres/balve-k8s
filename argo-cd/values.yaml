@@ -1,6 +1,6 @@
 argo-cd:
   global:
-    domain: argocd.dev.garmeres.com
+    domain: argocd.balve.garmeres.com
 
   server:
     ingress:
@@ -16,7 +16,7 @@ argo-cd:
   configs:
     cm:
       admin.enabled: "false"
-      url: https://argocd.dev.garmeres.com
+      url: https://argocd.balve.garmeres.com
       dex.config: |
         connectors:
           - type: github

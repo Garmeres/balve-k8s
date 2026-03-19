@@ -1,6 +1,6 @@
 nextcloud:
   nextcloud:
-    host: dev.garmeres.com
+    host: balve.garmeres.com
     existingSecret:
       enabled: true
       secretName: nextcloud-admin
@@ -46,10 +46,10 @@ nextcloud:
           'forwarded_for_headers' => array('HTTP_X_FORWARDED_FOR'),
           'overwriteprotocol' => 'https',
           'trusted_domains' => array(
-            0 => 'dev.garmeres.com',
+            0 => 'balve.garmeres.com',
             1 => 'localhost',
           ),
-          'overwrite.cli.url' => 'https://dev.garmeres.com',
+          'overwrite.cli.url' => 'https://balve.garmeres.com',
         );
 
   ingress:
@@ -61,7 +61,7 @@ nextcloud:
     tls:
       - secretName: nextcloud-tls
         hosts:
-          - dev.garmeres.com
+          - balve.garmeres.com
 
   # Internal SQLite off — using MariaDB
   internalDatabase:
@@ -144,23 +144,23 @@ nextcloud:
     enabled: true
     collabora:
       aliasgroups:
-        - host: "https://dev.garmeres.com"
+        - host: "https://balve.garmeres.com"
       extra_params: "--o:ssl.enable=false --o:ssl.termination=true"
-      server_name: collabora.dev.garmeres.com
+      server_name: collabora.balve.garmeres.com
     ingress:
       enabled: true
       className: traefik
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
       hosts:
-        - host: collabora.dev.garmeres.com
+        - host: collabora.balve.garmeres.com
           paths:
             - path: /
               pathType: Prefix
       tls:
         - secretName: collabora-tls
           hosts:
-            - collabora.dev.garmeres.com
+            - collabora.balve.garmeres.com
     resources:
       requests:
         memory: 256Mi
