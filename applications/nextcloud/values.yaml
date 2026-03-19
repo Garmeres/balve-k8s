@@ -90,6 +90,24 @@ nextcloud:
         enabled: true
         size: 1Gi
 
+  redis:
+    enabled: true
+    auth:
+      enabled: true
+      password: "nextcloud-redis"
+    master:
+      persistence:
+        enabled: false
+      resources:
+        requests:
+          memory: 32Mi
+          cpu: 10m
+        limits:
+          memory: 64Mi
+          cpu: 50m
+    replica:
+      replicaCount: 0
+
   # Nextcloud app persistence (config, apps — not user files)
   persistence:
     enabled: true
