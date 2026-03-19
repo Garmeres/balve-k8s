@@ -170,8 +170,8 @@ nextcloud:
             - collabora.balve.garmeres.com
     resources:
       requests:
-        memory: 256Mi
-        cpu: 100m
+        memory: 1Gi
+        cpu: 500m
       limits:
         memory: 1Gi
         cpu: 1
