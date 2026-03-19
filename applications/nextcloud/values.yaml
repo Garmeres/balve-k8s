@@ -1,3 +1,6 @@
+backupSchedule: "0 23 2-30/2 * *"
+imageUpdaterSchedule: "0 0 * * *"
+
 nextcloud:
   image:
     tag: 33-apache

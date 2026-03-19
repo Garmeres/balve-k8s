@@ -6,11 +6,11 @@ See [08-create-object-storage.md](../../docs/day-0/08-create-object-storage.md) 
 
 ## Nightly schedule (all times UTC)
 
-| Time  | Job                  | Schedule               |
-| ----- | -------------------- | ---------------------- |
-| 23:00 | Database backup      | Even days (`2-30/2`)   |
-| 00:00 | Image updater        | Daily                  |
-| 01:00–05:00 | Maintenance window | Daily (set via config) |
+| Time        | Job                | Schedule             |
+| ----------- | ------------------ | -------------------- |
+| 23:00       | Database backup    | Even days (`2-30/2`) |
+| 00:00       | Image updater      | Daily                |
+| 01:00–05:00 | Maintenance window | Daily                |
 
 ## Image updates
 
@@ -49,9 +49,9 @@ kubectl delete job restore-now -n nextcloud
 
 ## Sealed secrets
 
-| Secret             | Keys                                                        |
-| ------------------ | ----------------------------------------------------------- |
-| `nextcloud-admin`  | `username`, `password`, `smtp-host`, `smtp-username`, `smtp-password` |
-| `nextcloud-s3`     | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`                  |
-| `nextcloud-mariadb`| `mariadb-root-password`, `mariadb-password`, `db-username`  |
-| `nextcloud-redis`  | `redis-password`                                            |
+| Secret              | Keys                                                                  |
+| ------------------- | --------------------------------------------------------------------- |
+| `nextcloud-admin`   | `username`, `password`, `smtp-host`, `smtp-username`, `smtp-password` |
+| `nextcloud-s3`      | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`                            |
+| `nextcloud-mariadb` | `mariadb-root-password`, `mariadb-password`, `db-username`            |
+| `nextcloud-redis`   | `redis-password`                                                      |
