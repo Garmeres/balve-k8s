@@ -28,11 +28,7 @@ spec:
                   BUCKET="s3://{{ .Values.nextcloud.nextcloud.objectStore.s3.bucket }}/backups"
                   apk add --no-cache mariadb-client aws-cli
 
-                  echo "Creating backup..."
-                  mysqldump -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud | gzip | \
-                    aws s3 cp - "$BUCKET/nextcloud-$(date +%Y%m%d-%H%M%S).sql.gz" \
-                      --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
-
+                  # Clean up old backups first (idempotent — safe to re-run on retry)
                   echo "Cleaning up backups older than 7 days..."
                   CUTOFF=$(date -u -d "-7 days" +%Y%m%d 2>/dev/null || date -u -v-7d +%Y%m%d)
                   aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
@@ -43,6 +39,12 @@ spec:
                         aws s3 rm "$BUCKET/$file" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
                       fi
                     done
+
+                  # Fixed daily filename — retries overwrite the same file
+                  echo "Creating backup..."
+                  mysqldump -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud | gzip | \
+                    aws s3 cp - "$BUCKET/nextcloud-$(date +%Y%m%d).sql.gz" \
+                      --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
                   echo "Done."
               env:
                 - name: DB_PASS
