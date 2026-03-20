@@ -22,9 +22,9 @@ spec:
                 - -c
                 - |
                   set -e
-                  S3_ENDPOINT="https://{{ .Values.nextcloud.nextcloud.objectStore.s3.host }}"
-                  S3_REGION="{{ .Values.nextcloud.nextcloud.objectStore.s3.region }}"
-                  BUCKET="s3://{{ .Values.nextcloud.nextcloud.objectStore.s3.bucket }}/backups"
+                  S3_ENDPOINT="https://{{ .Values.backupS3.host }}"
+                  S3_REGION="{{ .Values.backupS3.region }}"
+                  BUCKET="s3://{{ .Values.backupS3.bucket }}/backups"
                   apk add --no-cache mariadb-client aws-cli
 
                   echo "Available backups:"
@@ -64,6 +64,11 @@ spec:
                   cp /tmp/config.php /nextcloud-data/config/config.php
                   chown 33:33 /nextcloud-data/config/config.php
 
+                  # Create data directory marker
+                  mkdir -p /nextcloud-data/data
+                  echo "# Nextcloud data directory" > /nextcloud-data/data/.ncdata
+                  chown 33:33 /nextcloud-data/data /nextcloud-data/data/.ncdata
+
                   echo "Restore complete. Scale the deployment back up."
               env:
                 - name: RESTORE_DATE
@@ -76,13 +81,13 @@ spec:
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:
-                      name: {{ .Values.nextcloud.nextcloud.objectStore.s3.existingSecret }}
-                      key: {{ .Values.nextcloud.nextcloud.objectStore.s3.secretKeys.accessKey }}
+                      name: {{ .Values.backupS3.existingSecret }}
+                      key: {{ .Values.backupS3.secretKeys.accessKey }}
                 - name: AWS_SECRET_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: {{ .Values.nextcloud.nextcloud.objectStore.s3.existingSecret }}
-                      key: {{ .Values.nextcloud.nextcloud.objectStore.s3.secretKeys.secretKey }}
+                      name: {{ .Values.backupS3.existingSecret }}
+                      key: {{ .Values.backupS3.secretKeys.secretKey }}
               volumeMounts:
                 - name: nextcloud-data
                   mountPath: /nextcloud-data

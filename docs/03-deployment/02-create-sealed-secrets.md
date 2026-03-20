@@ -2,82 +2,48 @@
 
 Secrets are encrypted with [Sealed Secrets](https://sealed-secrets.netlify.app/) and stored in git. The controller in the cluster decrypts them.
 
-## Install tools
+## Export the public cert
+
+**On the server** (Hetzner console → `master-1`):
+
+Wait for ArgoCD to sync the sealed-secrets application:
 
 ```
-brew install kubeseal
+kubectl get application sealed-secrets -n argocd -w
 ```
 
-## Wait for the controller
-
-After deploying ArgoCD (doc 10), the sealed-secrets controller is deployed automatically. Wait for it:
+Once it shows `Synced`, wait for the controller pod:
 
 ```
-ssh balve-master 'kubectl get pods -n sealed-secrets -w'
+kubectl get pods -n sealed-secrets -w
 ```
+
+Once it is up, print the public certificate:
+
+```
+kubeseal --fetch-cert --controller-namespace sealed-secrets
+```
+
+Copy the output (starts with `-----BEGIN CERTIFICATE-----`) and save it on your local machine as `~/sealed-secrets-cert.pem`.
 
 ---
 
-## Path A: Restore existing signing key
+## Seal the secrets
 
-Use this path if you have the signing key backed up as a GitHub repository secret. The sealed secrets already committed in git will be decryptable.
+All remaining commands run **on your local machine** (Linux or macOS), from the root of the `balve-k8s` repo.
 
-Download the `signing_key_backup` secret from _github.com/garmeres/balve-k8s/settings/secrets/actions_ and save it as `~/signing-key-backup.yaml`.
+### Install tools
 
-Restore the key **before** the controller starts (or restart it after):
+Install [kubectl](https://kubernetes.io/docs/tasks/tools/) and [kubeseal](https://github.com/bitnami-labs/sealed-secrets#kubeseal) on your local machine.
 
-```
-cat ~/signing-key-backup.yaml | ssh balve-master 'kubectl apply -f -'
-ssh balve-master 'kubectl rollout restart deployment -n sealed-secrets sealed-secrets'
-```
+### S3
 
-The controller picks up the restored key and decrypts the SealedSecrets already in git. Delete the local copy and **you're done.**
-
----
-
-## Path B: Create new secrets from scratch
-
-Use this path on first setup, or if the signing key is lost. All secrets will be regenerated.
-
-### Backup the signing key
-
-The controller's signing key is the only thing that can decrypt your secrets. Save it somewhere safe (password manager):
+In the [Hetzner Cloud Console](https://console.hetzner.cloud), go to _Object Storage_ → _Manage credentials_ → _Generate credentials_.
 
 ```
-ssh balve-master 'kubectl get secret -n sealed-secrets -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml' > ~/signing-key-backup.yaml
+S3_KEY='<S3 Access Key>'
+S3_SECRET='<S3 Secret Key>'
 ```
-
-Store the contents as a repository secret named `signing_key_backup` in _github.com/garmeres/balve-k8s/settings/secrets/actions_, then delete the local copy.
-
-### Credentials
-
-In the Hetzner console, go to _Object Storage_ -> _Manage credentials_ -> _Generate credentials_.
-
-Go to the Domeneshop control panel -> _E-post_ -> _SMTP-innstillinger_ and note the username and password.
-
-From the GitHub OAuth App created in the ArgoCD step, get the **Client ID** and **Client Secret**.
-
-```
-S3_KEY="<S3 Access Key>"
-S3_SECRET="<S3 Secret Key>"
-SMTP_USER="<SMTP username>"
-SMTP_PASS="<SMTP password>"
-GITHUB_CLIENT_ID="<Client ID>"
-GITHUB_CLIENT_SECRET="<Client Secret>"
-```
-
-### Fetch the public cert
-
-```
-ssh balve-master 'kubectl get secret -n sealed-secrets -l sealedsecrets.bitnami.com/sealed-secrets-key -o jsonpath="{.items[0].data.tls\.crt}"' \
-  | base64 -d > ~/sealed-secrets-cert.pem
-```
-
-### Seal the secrets
-
-Run all commands below from the **root of the balve-k8s repo**.
-
-### Strapi
 
 ```
 kubectl create secret generic strapi-s3 --namespace strapi --dry-run=client \
@@ -86,37 +52,84 @@ kubectl create secret generic strapi-s3 --namespace strapi --dry-run=client \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/strapi/templates/sealed-strapi-s3.yaml
 
-kubectl create secret generic strapi-secrets --namespace strapi --dry-run=client \
-  --from-literal=APP_KEYS="$(openssl rand -base64 16),$(openssl rand -base64 16)" \
-  --from-literal=API_TOKEN_SALT="$(openssl rand -base64 16)" \
-  --from-literal=ADMIN_JWT_SECRET="$(openssl rand -base64 16)" \
-  --from-literal=TRANSFER_TOKEN_SALT="$(openssl rand -base64 16)" \
-  --from-literal=ENCRYPTION_KEY="$(openssl rand -base64 16)" \
-  --from-literal=SMTP_HOST="smtp.domeneshop.no" \
-  --from-literal=SMTP_PORT="587" \
-  --from-literal=SMTP_USERNAME="$SMTP_USER" \
-  --from-literal=SMTP_PASSWORD="$SMTP_PASS" \
-  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
-  > applications/strapi/templates/sealed-strapi-secrets.yaml
-```
-
-### Nextcloud
-
-```
 kubectl create secret generic nextcloud-s3 --namespace nextcloud --dry-run=client \
   --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
   --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/nextcloud/templates/sealed-nextcloud-s3.yaml
 
+kubectl create secret generic calendar-sync-s3 --namespace calendar-sync --dry-run=client \
+  --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
+  --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/calendar-sync/templates/sealed-calendar-sync-s3.yaml
+```
+
+### SMTP
+
+In the [Domeneshop control panel](https://domene.shop/login), log in with **admin@garmeres.com**. Go to _Mine domener_ → _garmeres.com_ → _Epost_, click **Balve** (`garmeres10`), and reset the password.
+
+```
+SMTP_PASS='<new password>'
+```
+
+```
+kubectl create secret generic strapi-smtp --namespace strapi --dry-run=client \
+  --from-literal=SMTP_USERNAME="garmeres10" \
+  --from-literal=SMTP_PASSWORD="$SMTP_PASS" \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/strapi/templates/sealed-strapi-smtp.yaml
+
 kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=client \
   --from-literal=username="admin" \
   --from-literal=password="$(openssl rand -base64 16)" \
-  --from-literal=smtp-host="smtp.domeneshop.no" \
-  --from-literal=smtp-username="$SMTP_USER" \
+  --from-literal=smtp-username="garmeres10" \
   --from-literal=smtp-password="$SMTP_PASS" \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/nextcloud/templates/sealed-nextcloud-admin.yaml
+```
+
+### GitHub OAuth
+
+Go to [github.com/organizations/garmeres/settings/applications](https://github.com/organizations/garmeres/settings/applications). If the **ArgoCD** OAuth App already exists, open it and generate a new client secret. Otherwise, create it:
+
+| Field                      | Value                                                |
+| -------------------------- | ---------------------------------------------------- |
+| Application name           | `ArgoCD`                                             |
+| Homepage URL               | `https://argocd.balve.garmeres.com`                  |
+| Authorization callback URL | `https://argocd.balve.garmeres.com/api/dex/callback` |
+| Enable Device Flow         | checked                                              |
+
+Click _Register application_.
+
+In both cases, the **Client ID** is shown near the top of the app page. Click _Generate a new client secret_ — the secret is only shown once, copy it immediately.
+
+```
+GITHUB_CLIENT_ID='<Client ID>'
+GITHUB_CLIENT_SECRET='<Client Secret>'
+```
+
+```
+kubectl create secret generic argocd-dex-github --namespace argocd --dry-run=client \
+  --from-literal=clientID="$GITHUB_CLIENT_ID" \
+  --from-literal=clientSecret="$GITHUB_CLIENT_SECRET" \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/argocd-config/templates/sealed-argocd-dex-github.yaml
+```
+
+### Generated secrets
+
+These use randomly generated values — no credentials to gather.
+
+```
+kubectl create secret generic strapi-secrets --namespace strapi --dry-run=client \
+  --from-literal=APP_KEYS="$(openssl rand -base64 16),$(openssl rand -base64 16)" \
+  --from-literal=API_TOKEN_SALT="$(openssl rand -base64 16)" \
+  --from-literal=ADMIN_JWT_SECRET="$(openssl rand -base64 16)" \
+  --from-literal=TRANSFER_TOKEN_SALT="$(openssl rand -base64 16)" \
+  --from-literal=ENCRYPTION_KEY="$(openssl rand -base64 16)" \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/strapi/templates/sealed-strapi-secrets.yaml
 
 kubectl create secret generic nextcloud-mariadb --namespace nextcloud --dry-run=client \
   --from-literal=mariadb-root-password="$(openssl rand -base64 16)" \
@@ -131,36 +144,18 @@ kubectl create secret generic nextcloud-redis --namespace nextcloud --dry-run=cl
   > applications/nextcloud/templates/sealed-nextcloud-redis.yaml
 ```
 
-### ArgoCD
-
-```
-kubectl create secret generic argocd-dex-github --namespace argocd --dry-run=client \
-  --from-literal=clientID="$GITHUB_CLIENT_ID" \
-  --from-literal=clientSecret="$GITHUB_CLIENT_SECRET" \
-  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
-  > applications/argocd-config/templates/sealed-argocd-dex-github.yaml
-```
-
-### Calendar Sync
-
-```
-kubectl create secret generic calendar-sync-s3 --namespace calendar-sync --dry-run=client \
-  --from-literal=S3_ACCESS_KEY_ID="$S3_KEY" \
-  --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET" \
-  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
-  > applications/calendar-sync/templates/sealed-calendar-sync-s3.yaml
-```
-
-### Calendar Sync (AWS - backwards compat)
+### AWS S3 (backwards compat)
 
 Temporary secret for syncing to the old AWS S3 bucket + CloudFront. Remove this when the old frontend is retired.
 
 Create an IAM user `calendar-sync-k8s` in the AWS Console with a policy allowing `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject`, `s3:ListBucket` on `garmeres-calendar-sync-events-bucket` and `cloudfront:CreateInvalidation`. Generate an access key.
 
 ```
-AWS_KEY="<AWS Access Key ID>"
-AWS_SECRET="<AWS Secret Access Key>"
+AWS_KEY='<AWS Access Key ID>'
+AWS_SECRET='<AWS Secret Access Key>'
+```
 
+```
 kubectl create secret generic calendar-sync-aws-s3 --namespace calendar-sync --dry-run=client \
   --from-literal=S3_ACCESS_KEY_ID="$AWS_KEY" \
   --from-literal=S3_SECRET_ACCESS_KEY="$AWS_SECRET" \
@@ -176,4 +171,4 @@ git commit -m "Add sealed secrets"
 git push
 ```
 
-ArgoCD will sync the SealedSecret resources. The controller decrypts them into regular Kubernetes Secrets in each namespace. The ArgoCD Dex secret is picked up automatically — no redeploy needed.
+ArgoCD will sync the SealedSecret resources. The controller decrypts them into regular Kubernetes Secrets in each namespace. Applications that depend on these secrets (Strapi, Nextcloud, calendar-sync) will start recovering automatically.

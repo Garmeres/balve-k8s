@@ -4,7 +4,7 @@ Self-hosted Strapi CMS with SQLite on a PersistentVolumeClaim and S3 media stora
 
 Email is sent via SMTP (Domeneshop) using the `@strapi/provider-email-nodemailer` plugin. From address: `balve@garmeres.com`, reply-to: `admin@garmeres.com`.
 
-See [09-create-object-storage.md](../../docs/02-infrastructure/09-create-object-storage.md) for prerequisite secrets and bucket setup.
+See [07-create-object-storage.md](../../docs/02-infrastructure/07-create-object-storage.md) for prerequisite secrets and bucket setup.
 
 ## Backups
 
@@ -16,37 +16,70 @@ s3://balve-strapi/backups/strapi-backup-YYYYMMDD.db.gz
 
 ## Restore
 
-ArgoCD auto-sync must be paused first, otherwise it will scale the deployment back up immediately.
+The procedure below works for both a simple restore and full disaster recovery (PVC deleted).
+
+Trigger an ArgoCD sync to ensure all resources exist (no-op if nothing was deleted):
 
 ```bash
-# Pause ArgoCD auto-sync
+kubectl patch app strapi -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{}}}'
+```
+
+Wait for the PVC to be ready:
+
+```bash
+kubectl wait --for=jsonpath=.status.phase=Bound pvc/strapi-data -n strapi --timeout=60s
+```
+
+Pause ArgoCD auto-sync so scale-down is not reverted:
+
+```bash
 kubectl patch app strapi -n argocd --type merge \
   -p '{"spec":{"syncPolicy":null}}'
+```
 
-# Scale down
+Scale down Strapi:
+
+```bash
 kubectl scale deployment strapi -n strapi --replicas=0
+```
 
-# Restore latest backup
-kubectl create job --from=cronjob/strapi-restore restore-now -n strapi
+Restore the latest backup:
 
-# Or restore a specific date (YYYYMMDD).
-# Available dates can be found in the Hetzner Object Storage console
-# under balve-strapi/backups/, or in the restore job logs.
-kubectl create job --from=cronjob/strapi-restore restore-now -n strapi \
+```bash
+kubectl create job --from=cronjob/strapi-restore restore-strapi -n strapi
+```
+
+Or restore a specific date (YYYYMMDD). Available dates are listed in the job logs, or in the Hetzner Object Storage console under `balve-strapi/backups/`:
+
+```bash
+kubectl create job --from=cronjob/strapi-restore restore-strapi -n strapi \
   --dry-run=client -o json | \
-  jq '.spec.template.spec.containers[0].env[0].value = "20260317"' | \
+  jq '(.spec.template.spec.containers[0].env[] | select(.name == "RESTORE_DATE")).value = "20260317"' | \
   kubectl apply -f -
+```
 
-# Check job logs to see available backups and progress
-kubectl logs -n strapi job/restore-now
+Follow the job logs (waits up to 60 s for the pod to start):
 
-# Scale back up
+```bash
+kubectl logs -f --pod-running-timeout=60s -n strapi job/restore-strapi
+```
+
+Scale back up:
+
+```bash
 kubectl scale deployment strapi -n strapi --replicas=1
+```
 
-# Re-enable ArgoCD auto-sync
+Re-enable ArgoCD auto-sync:
+
+```bash
 kubectl patch app strapi -n argocd --type merge \
   -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+```
 
-# Clean up the job
-kubectl delete job restore-now -n strapi
+Clean up the job:
+
+```bash
+kubectl delete job restore-strapi -n strapi
 ```

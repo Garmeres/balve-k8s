@@ -6,15 +6,19 @@ host: strapi.balve.garmeres.com
 ingressClassName: traefik
 frameAncestors: https://balve.garmeres.com
 
-existingSecret: strapi-secrets
+appSecret: strapi-secrets
 
-s3Secret: strapi-s3
+smtp:
+  host: smtp.domeneshop.no
+  port: 587
+  secretRef: strapi-smtp
 
 s3:
   endpoint: https://hel1.your-objectstorage.com
   region: "hel1"
   bucket: "balve-strapi"
   cdnUrl: "https://balve-strapi.hel1.your-objectstorage.com"
+  secretRef: strapi-s3
 
 backupSchedule: "0 23 1-29/2 * *"
 

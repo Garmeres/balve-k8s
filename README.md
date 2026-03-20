@@ -12,6 +12,10 @@ Kubernetes infrastructure for [Garmeres](https://garmeres.com). Runs on two Hetz
 | [cert-manager](applications/cert-manager)     | TLS certificates via Let's Encrypt                         |
 | [sealed-secrets](applications/sealed-secrets) | Encrypted secrets stored in git                            |
 
+## Need to grant or revoke access?
+
+If you're a technical manager and need to give someone access to Balve (e.g. a consultant or new team member), or remove access from someone, see the [access management guide](docs/01-access-management/).
+
 ## Architecture
 
 - **Cluster:** k3s on Hetzner Cloud (1 master + 1 worker)
@@ -21,21 +25,24 @@ Kubernetes infrastructure for [Garmeres](https://garmeres.com). Runs on two Hetz
 - **Secrets:** Sealed Secrets — encrypted in git, decrypted by controller
 - **Storage:** Hetzner Object Storage (S3-compatible) for media, backups, and Litestream replication
 
-## Setup guide
+## Documentation
 
-### Day 0 — Infrastructure
+### [1. Access management](docs/01-access-management/)
 
-1. [Networks](docs/day-0/01-networks.md)
-2. [Placement groups](docs/day-0/02-servers-placement-groups.md)
-3. [Firewalls](docs/day-0/03-firewalls.md)
-4. [SSH key](docs/day-0/04-create-ssh-key.md)
-5. [Master node](docs/day-0/05-server-master-node.md)
-6. [SSH config](docs/day-0/06-ssh-config-for-master-1.md)
-7. [Worker node](docs/day-0/07-server-worker-node.md)
-8. [DNS records](docs/day-0/08-dns-records.md)
-9. [Object storage](docs/day-0/09-create-object-storage.md)
+Grant, revoke, and audit administrative access to the platform.
 
-### Day 1 — Platform
+### [2. Infrastructure](docs/02-infrastructure/)
 
-1. [Deploy ArgoCD](docs/day-1/01-deploy-argocd.md)
-2. [Sealed secrets](docs/day-1/02-create-sealed-secrets.md)
+1. [Networks](docs/02-infrastructure/01-networks.md)
+2. [Placement groups](docs/02-infrastructure/02-servers-placement-groups.md)
+3. [Firewalls](docs/02-infrastructure/03-firewalls.md)
+4. [Master node](docs/02-infrastructure/04-server-master-node.md)
+5. [Worker node](docs/02-infrastructure/05-server-worker-node.md)
+6. [DNS records](docs/02-infrastructure/06-dns-records.md)
+7. [Object storage](docs/02-infrastructure/07-create-object-storage.md)
+
+### [3. Deployment](docs/03-deployment/)
+
+1. [Deploy ArgoCD](docs/03-deployment/01-deploy-argocd.md)
+2. [Sealed secrets](docs/03-deployment/02-create-sealed-secrets.md)
+3. [Nextcloud OIDC for ArgoCD](docs/03-deployment/03-nextcloud-oidc.md)

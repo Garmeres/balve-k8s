@@ -9,7 +9,7 @@ In the Hetzner console, go to _Servers_ -> _Add Server_, and use the following v
 | Location         | `eu-central` (Helsinki)                                                                                             |
 | Image            | `Ubuntu 24.04`                                                                                                      |
 | Networking       | <ul><li>[x] Public IPv4</li><li>[ ] Public IPv6</li><li>[x] Private networks<ul><li>`network-1`</li></ul></li></ul> |
-| SSH keys         | <ul><li>`hetzner-balve`</li></ul>                                                                                   |
+| SSH keys         |                                                                                                                     |
 | Volumes          |                                                                                                                     |
 | Firewalls        | <ul><li>`firewall-1`</li></ul>                                                                                      |
 | Backups          |                                                                                                                     |
@@ -20,19 +20,7 @@ In the Hetzner console, go to _Servers_ -> _Add Server_, and use the following v
 
 ## Cloud config
 
-Copy the entire [Cloud init script](#cloud-init-script), and paste it into the **Cloud Config** field of the Hetzner Server. Replace `<SSH PUBLIC KEY>` with the output of [Get SSH public key](./04-create-ssh-key.md#get-ssh-public-key), so that this:
-
-```
-ssh_authorized_keys:
-  - <SSH PUBLIC KEY>
-```
-
-Becomes this:
-
-```
-ssh_authorized_keys:
-  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB8... hetzner-balve
-```
+Copy the entire [Cloud init script](#cloud-init-script), and paste it into the **Cloud Config** field of the Hetzner Server.
 
 ### Cloud init script
 
@@ -44,18 +32,13 @@ manage_etc_hosts: true
 package_update: true
 package_upgrade: true
 
-ssh_pwauth: false
-disable_root: false
-
 users:
   - name: root
     shell: /bin/bash
-    lock_passwd: true
-    ssh_authorized_keys:
-      - <SSH PUBLIC KEY>
 
 packages:
   - curl
+  - git
 
 write_files:
   - path: /etc/ssh/sshd_config.d/99-hardening.conf
@@ -110,6 +93,14 @@ runcmd:
       systemctl restart ssh || systemctl restart sshd
 
       curl -sfL https://get.k3s.io | sh -s - server
+
+      curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      KUBESEAL_VERSION=$(curl -s https://api.github.com/repos/bitnami-labs/sealed-secrets/releases/latest | grep '"tag_name"' | sed 's/.*"v\(.*\)".*/\1/')
+      curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION}/kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz"
+      tar -xzf kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz kubeseal
+      install -m 755 kubeseal /usr/local/bin/kubeseal
+      rm kubeseal kubeseal-${KUBESEAL_VERSION}-linux-amd64.tar.gz
 
 power_state:
   mode: reboot

@@ -51,12 +51,12 @@ spec:
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:
-                      name: {{ .Values.s3Secret }}
+                      name: {{ .Values.s3.secretRef }}
                       key: S3_ACCESS_KEY_ID
                 - name: AWS_SECRET_ACCESS_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: {{ .Values.s3Secret }}
+                      name: {{ .Values.s3.secretRef }}
                       key: S3_SECRET_ACCESS_KEY
               volumeMounts:
                 - name: data

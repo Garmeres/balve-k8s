@@ -9,7 +9,7 @@ In the Hetzner console, go to _Servers_ -> _Add Server_, and use the following v
 | Location         | `eu-central` (Helsinki)                                                                                             |
 | Image            | `Ubuntu 24.04`                                                                                                      |
 | Networking       | <ul><li>[x] Public IPv4</li><li>[ ] Public IPv6</li><li>[x] Private networks<ul><li>`network-1`</li></ul></li></ul> |
-| SSH keys         | <ul><li>`hetzner-balve`</li></ul>                                                                                   |
+| SSH keys         |                                                                                                                     |
 | Volumes          |                                                                                                                     |
 | Firewalls        | <ul><li>`firewall-2`</li></ul>                                                                                      |
 | Backups          |                                                                                                                     |
@@ -22,36 +22,14 @@ In the Hetzner console, go to _Servers_ -> _Add Server_, and use the following v
 
 Copy the entire [Cloud init script](#cloud-init-script), and paste it into the **Cloud Config** field of the Hetzner Server.
 
-### SSH public key
-
-Replace `<SSH PUBLIC KEY>` with the output of [Get SSH public key](./04-create-ssh-key.md#get-ssh-public-key), so that this:
-
-```
-ssh_authorized_keys:
-  - <SSH PUBLIC KEY>
-```
-
-Becomes this:
-
-```
-ssh_authorized_keys:
-  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB8... hetzner-balve
-```
-
 ### Kubernetes join token
 
 Replace `<JOIN TOKEN>` with the join token from the master node.
 
-SSH into the master node by running:
+In the Hetzner console, go to **Servers** → **master-1** and click the **>_ Console** icon to open a web terminal. Log in as `root` and run:
 
 ```
-ssh balve-master
-```
-
-Run the following command to print the token:
-
-```
-sudo cat /var/lib/rancher/k3s/server/node-token
+cat /var/lib/rancher/k3s/server/node-token
 ```
 
 It should print something like:
@@ -82,15 +60,9 @@ manage_etc_hosts: true
 package_update: true
 package_upgrade: true
 
-ssh_pwauth: false
-disable_root: false
-
 users:
   - name: root
     shell: /bin/bash
-    lock_passwd: true
-    ssh_authorized_keys:
-      - <SSH PUBLIC KEY>
 
 packages:
   - curl

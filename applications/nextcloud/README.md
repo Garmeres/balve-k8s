@@ -2,7 +2,7 @@
 
 Nextcloud 33 with MariaDB, Redis, S3 primary objectstore, and self-hosted Collabora Online for document editing.
 
-See [09-create-object-storage.md](../../docs/02-infrastructure/09-create-object-storage.md) for prerequisite secrets and bucket setup.
+See [07-create-object-storage.md](../../docs/02-infrastructure/07-create-object-storage.md) for prerequisite secrets and bucket setup.
 
 ## Installed apps
 
@@ -53,46 +53,83 @@ s3://<bucket>/backups/nextcloud-backup-YYYYMMDD.tar.gz
 
 ## Restore
 
-ArgoCD auto-sync must be paused first, otherwise it will scale the deployment back up immediately.
+The restore job needs MariaDB running and the Nextcloud PVC bound. The procedure below works for both a simple restore and full disaster recovery (PVCs deleted).
+
+Trigger an ArgoCD sync to ensure all resources exist (no-op if nothing was deleted):
 
 ```bash
-# Pause ArgoCD auto-sync
+kubectl patch app nextcloud -n argocd --type merge \
+  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{}}}'
+```
+
+Wait for PVCs and MariaDB to be ready:
+
+```bash
+kubectl wait --for=jsonpath=.status.phase=Bound pvc/nextcloud-nextcloud \
+  pvc/data-nextcloud-mariadb-0 -n nextcloud --timeout=60s
+kubectl rollout status statefulset/nextcloud-mariadb -n nextcloud --timeout=120s
+```
+
+Pause ArgoCD auto-sync so scale-down is not reverted:
+
+```bash
 kubectl patch app nextcloud -n argocd --type merge \
   -p '{"spec":{"syncPolicy":null}}'
+```
 
-# Scale down
+Scale down Nextcloud (MariaDB stays running for the database import):
+
+```bash
 kubectl scale deployment nextcloud -n nextcloud --replicas=0
+```
 
-# Restore latest backup
-kubectl create job --from=cronjob/nextcloud-restore restore-now -n nextcloud
+Restore the latest backup:
 
-# Or restore a specific date (YYYYMMDD).
-# Available dates can be found in the Hetzner Object Storage console
-# under balve-nextcloud/backups/, or in the restore job logs.
-kubectl create job --from=cronjob/nextcloud-restore restore-now -n nextcloud \
+```bash
+kubectl create job --from=cronjob/nextcloud-restore restore-nextcloud -n nextcloud
+```
+
+Or restore a specific date (YYYYMMDD). Available dates are listed in the job logs, or in the Hetzner Object Storage console under `balve-nextcloud/backups/`:
+
+```bash
+kubectl create job --from=cronjob/nextcloud-restore restore-nextcloud -n nextcloud \
   --dry-run=client -o json | \
-  jq '.spec.template.spec.containers[0].env[0].value = "20260317"' | \
+  jq '(.spec.template.spec.containers[0].env[] | select(.name == "RESTORE_DATE")).value = "20260317"' | \
   kubectl apply -f -
+```
 
-# Check job logs to see available backups and progress
-kubectl logs -n nextcloud job/restore-now
+Follow the job logs (waits up to 60 s for the pod to start):
 
-# Scale back up
+```bash
+kubectl logs -f --pod-running-timeout=60s -n nextcloud job/restore-nextcloud
+```
+
+Scale up and restart to reinstall apps via `postStartCommand`:
+
+```bash
 kubectl scale deployment nextcloud -n nextcloud --replicas=1
+kubectl rollout restart deployment/nextcloud -n nextcloud
+kubectl rollout status deployment/nextcloud -n nextcloud --timeout=300s
+```
 
-# Re-enable ArgoCD auto-sync
+Re-enable ArgoCD auto-sync:
+
+```bash
 kubectl patch app nextcloud -n argocd --type merge \
   -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+```
 
-# Clean up the job
-kubectl delete job restore-now -n nextcloud
+Clean up the job:
+
+```bash
+kubectl delete job restore-nextcloud -n nextcloud
 ```
 
 ## Sealed secrets
 
-| Secret              | Keys                                                                  |
-| ------------------- | --------------------------------------------------------------------- |
-| `nextcloud-admin`   | `username`, `password`, `smtp-host`, `smtp-username`, `smtp-password` |
-| `nextcloud-s3`      | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`                            |
-| `nextcloud-mariadb` | `mariadb-root-password`, `mariadb-password`, `db-username`            |
-| `nextcloud-redis`   | `redis-password`                                                      |
+| Secret              | Keys                                                       |
+| ------------------- | ---------------------------------------------------------- |
+| `nextcloud-admin`   | `username`, `password`, `smtp-username`, `smtp-password`   |
+| `nextcloud-s3`      | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`                 |
+| `nextcloud-mariadb` | `mariadb-root-password`, `mariadb-password`, `db-username` |
+| `nextcloud-redis`   | `redis-password`                                           |

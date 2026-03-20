@@ -35,12 +35,12 @@ spec:
             - name: S3_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.s3Secret }}
+                  name: {{ .Values.s3.secretRef }}
                   key: S3_ACCESS_KEY_ID
             - name: S3_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.s3Secret }}
+                  name: {{ .Values.s3.secretRef }}
                   key: S3_SECRET_ACCESS_KEY
             - name: S3_ENDPOINT
               value: {{ .Values.s3.endpoint | quote }}
@@ -53,41 +53,41 @@ spec:
             - name: APP_KEYS
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.existingSecret }}
+                  name: {{ .Values.appSecret }}
                   key: APP_KEYS
             - name: API_TOKEN_SALT
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.existingSecret }}
+                  name: {{ .Values.appSecret }}
                   key: API_TOKEN_SALT
             - name: ADMIN_JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.existingSecret }}
+                  name: {{ .Values.appSecret }}
                   key: ADMIN_JWT_SECRET
             - name: TRANSFER_TOKEN_SALT
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.existingSecret }}
+                  name: {{ .Values.appSecret }}
                   key: TRANSFER_TOKEN_SALT
             - name: ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.existingSecret }}
+                  name: {{ .Values.appSecret }}
                   key: ENCRYPTION_KEY
             - name: SMTP_HOST
-              value: "smtp.domeneshop.no"
+              value: {{ .Values.smtp.host | quote }}
             - name: SMTP_PORT
-              value: "587"
+              value: {{ .Values.smtp.port | quote }}
             - name: SMTP_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.existingSecret }}
+                  name: {{ .Values.smtp.secretRef }}
                   key: SMTP_USERNAME
             - name: SMTP_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.existingSecret }}
+                  name: {{ .Values.smtp.secretRef }}
                   key: SMTP_PASSWORD
             - name: FRAME_ANCESTORS
               value: {{ .Values.frameAncestors | quote }}
