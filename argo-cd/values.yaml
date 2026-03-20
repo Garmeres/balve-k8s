@@ -19,7 +19,7 @@ argo-cd:
       admin.enabled: "false"
       url: https://argocd.balve.garmeres.com
       ui.theme: auto
-      ui.bannercontent: "Shows the status of all services on the Balve server. Green means everything is running normally."
+      ui.bannercontent: "This dashboard shows the status of all services on the Balve server. Green means everything is running normally."
       ui.bannerposition: top
       ui.bannerpermanent: "true"
       dex.config: |
