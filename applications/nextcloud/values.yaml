@@ -15,21 +15,11 @@ nextcloud:
       smtpUsernameKey: smtp-username
       smtpPasswordKey: smtp-password
 
-    # S3 primary objectstore (replaces local file storage)
-    objectStore:
-      s3:
-        enabled: true
-        host: hel1.your-objectstorage.com
-        port: 443
-        ssl: true
-        region: hel1
-        bucket: balve-nextcloud
-        usePathStyle: true
-        autoCreate: false
-        existingSecret: nextcloud-s3
-        secretKeys:
-          accessKey: S3_ACCESS_KEY_ID
-          secretKey: S3_SECRET_ACCESS_KEY
+    # Primary storage: local disk (PVC)
+    # S3 primary objectstore was removed 2026-03-20 due to Hetzner S3
+    # rate limiting (503 SlowDown). Data migrated back to local disk.
+    # The S3 bucket (balve-nextcloud) is kept as backup. External S3
+    # mounts (balve-internal-data, balve-shared) are unaffected.
 
     mail:
       enabled: true
@@ -64,6 +54,7 @@ nextcloud:
           'serverid' => 1,
           'default_phone_region' => 'NO',
           'maintenance_window_start' => 1,
+          'check_data_directory_permissions' => false,
         );
 
   ingress:
