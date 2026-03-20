@@ -101,8 +101,8 @@ spec:
                   mountPath: /nextcloud-data
               resources:
                 requests:
-                  memory: 64Mi
-                  cpu: 50m
+                  memory: 512Mi
+                  cpu: 500m
                 limits:
                   memory: 512Mi
                   cpu: 500m
