@@ -78,5 +78,5 @@ argo-cd:
 
     params:
       server.insecure: true
-      server.x.frame.options: ""
+      server.x.frame.options: "ALLOW"
       server.content.security.policy: "frame-ancestors 'self' https://balve.garmeres.com"
