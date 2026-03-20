@@ -58,6 +58,10 @@ spec:
                   echo "Importing database..."
                   mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud < /tmp/nextcloud.sql
 
+                  echo "Clearing stale text editor sessions..."
+                  mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
+                    -e "TRUNCATE oc_text_steps; TRUNCATE oc_text_sessions; TRUNCATE oc_text_documents;"
+
                   # Restore config.php
                   echo "Restoring config.php..."
                   mkdir -p /nextcloud-data/config
