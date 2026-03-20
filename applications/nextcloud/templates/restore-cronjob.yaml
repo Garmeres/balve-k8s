@@ -64,10 +64,18 @@ spec:
                   cp /tmp/config.php /nextcloud-data/config/config.php
                   chown 33:33 /nextcloud-data/config/config.php
 
-                  # Create data directory marker
-                  mkdir -p /nextcloud-data/data
-                  echo "# Nextcloud data directory" > /nextcloud-data/data/.ncdata
-                  chown 33:33 /nextcloud-data/data /nextcloud-data/data/.ncdata
+                  # Restore user data
+                  if [ -f /tmp/userdata.tar.gz ]; then
+                    echo "Restoring user data..."
+                    mkdir -p /nextcloud-data/data
+                    tar xzf /tmp/userdata.tar.gz -C /nextcloud-data/data
+                    chown -R 33:33 /nextcloud-data/data
+                  else
+                    echo "No user data in backup, creating data directory marker..."
+                    mkdir -p /nextcloud-data/data
+                    echo "# Nextcloud data directory" > /nextcloud-data/data/.ncdata
+                    chown 33:33 /nextcloud-data/data /nextcloud-data/data/.ncdata
+                  fi
 
                   echo "Restore complete. Scale the deployment back up."
               env:
@@ -96,8 +104,8 @@ spec:
                   memory: 64Mi
                   cpu: 50m
                 limits:
-                  memory: 256Mi
-                  cpu: 200m
+                  memory: 512Mi
+                  cpu: 500m
           volumes:
             - name: nextcloud-data
               persistentVolumeClaim:

@@ -38,8 +38,12 @@ spec:
                   echo "Backing up config.php..."
                   cp /nextcloud-data/config/config.php /tmp/config.php
 
+                  # User data
+                  echo "Backing up user data..."
+                  tar czf /tmp/userdata.tar.gz -C /nextcloud-data/data .
+
                   # Package and upload
-                  tar czf /tmp/nextcloud-backup-$TODAY.tar.gz -C /tmp nextcloud.sql config.php
+                  tar czf /tmp/nextcloud-backup-$TODAY.tar.gz -C /tmp nextcloud.sql config.php userdata.tar.gz
                   aws s3 cp /tmp/nextcloud-backup-$TODAY.tar.gz "$BUCKET/nextcloud-backup-$TODAY.tar.gz" \
                     --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
 
@@ -79,8 +83,8 @@ spec:
                   memory: 64Mi
                   cpu: 50m
                 limits:
-                  memory: 256Mi
-                  cpu: 200m
+                  memory: 512Mi
+                  cpu: 500m
           volumes:
             - name: nextcloud-data
               persistentVolumeClaim:
