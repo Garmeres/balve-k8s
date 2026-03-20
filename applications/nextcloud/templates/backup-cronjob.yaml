@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: nextcloud-db-backup
+  name: nextcloud-backup
 spec:
   schedule: {{ .Values.backupSchedule | quote }}
   concurrencyPolicy: Forbid
@@ -12,7 +12,7 @@ spec:
       template:
         metadata:
           labels:
-            app: nextcloud-db-backup
+            app: nextcloud-backup
         spec:
           restartPolicy: OnFailure
           containers:
@@ -26,25 +26,33 @@ spec:
                   S3_ENDPOINT="https://{{ .Values.nextcloud.nextcloud.objectStore.s3.host }}"
                   S3_REGION="{{ .Values.nextcloud.nextcloud.objectStore.s3.region }}"
                   BUCKET="s3://{{ .Values.nextcloud.nextcloud.objectStore.s3.bucket }}/backups"
+                  TODAY=$(date +%Y%m%d)
                   apk add --no-cache mariadb-client aws-cli
 
-                  # Clean up old backups first (idempotent — safe to re-run on retry)
-                  echo "Cleaning up backups older than 28 days..."
-                  CUTOFF=$(date -u -d "-28 days" +%Y%m%d 2>/dev/null || date -u -v-28d +%Y%m%d)
-                  aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
-                    awk '{print $4}' | grep '^nextcloud-' | while read -r file; do
-                      file_date=$(echo "$file" | sed 's/nextcloud-\([0-9]\{8\}\).*/\1/')
-                      if [ "$file_date" -lt "$CUTOFF" ] 2>/dev/null; then
-                        echo "Deleting old backup: $file"
-                        aws s3 rm "$BUCKET/$file" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
-                      fi
-                    done
+                  # Database dump
+                  echo "Backing up database..."
+                  mysqldump --single-transaction \
+                    -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud > /tmp/nextcloud.sql
 
-                  # Fixed daily filename — retries overwrite the same file
-                  echo "Creating backup..."
-                  mysqldump -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud | gzip | \
-                    aws s3 cp - "$BUCKET/nextcloud-$(date +%Y%m%d).sql.gz" \
-                      --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
+                  # Config
+                  echo "Backing up config.php..."
+                  cp /nextcloud-data/config/config.php /tmp/config.php
+
+                  # Package and upload
+                  tar czf /tmp/nextcloud-backup-$TODAY.tar.gz -C /tmp nextcloud.sql config.php
+                  aws s3 cp /tmp/nextcloud-backup-$TODAY.tar.gz "$BUCKET/nextcloud-backup-$TODAY.tar.gz" \
+                    --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
+
+                  # Clean up old backups (best-effort — runs only after successful backup)
+                  # Keep the 14 newest backups, delete the rest
+                  echo "Cleaning up old backups..."
+                  set +e
+                  aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
+                    awk '{print $4}' | grep '^nextcloud-backup-' | sort -r | tail -n +15 | while read -r file; do
+                    echo "Deleting old backup: $file"
+                    aws s3 rm "$BUCKET/$file" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
+                  done
+
                   echo "Done."
               env:
                 - name: DB_PASS
@@ -62,6 +70,10 @@ spec:
                     secretKeyRef:
                       name: {{ .Values.nextcloud.nextcloud.objectStore.s3.existingSecret }}
                       key: {{ .Values.nextcloud.nextcloud.objectStore.s3.secretKeys.secretKey }}
+              volumeMounts:
+                - name: nextcloud-data
+                  mountPath: /nextcloud-data
+                  readOnly: true
               resources:
                 requests:
                   memory: 64Mi
@@ -69,3 +81,7 @@ spec:
                 limits:
                   memory: 256Mi
                   cpu: 200m
+          volumes:
+            - name: nextcloud-data
+              persistentVolumeClaim:
+                claimName: nextcloud-nextcloud

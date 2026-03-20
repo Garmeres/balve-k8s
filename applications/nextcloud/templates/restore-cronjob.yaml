@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: nextcloud-db-restore
+  name: nextcloud-restore
 spec:
   suspend: true
   schedule: "0 0 * * *"
@@ -11,7 +11,7 @@ spec:
       template:
         metadata:
           labels:
-            app: nextcloud-db-restore
+            app: nextcloud-restore
         spec:
           restartPolicy: Never
           containers:
@@ -28,33 +28,45 @@ spec:
                   apk add --no-cache mariadb-client aws-cli
 
                   echo "Available backups:"
-                  aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | grep 'nextcloud-'
+                  aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | grep 'nextcloud-backup-'
 
-                  if [ "$BACKUP_FILE" = "latest" ]; then
-                    BACKUP_FILE=$(aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
-                      awk '{print $4}' | grep '^nextcloud-' | sort | tail -1)
+                  BACKUP_DATE="$RESTORE_DATE"
+                  if [ "$BACKUP_DATE" = "latest" ]; then
+                    BACKUP_DATE=$(aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
+                      awk '{print $4}' | grep '^nextcloud-backup-' | sed 's/nextcloud-backup-\([0-9]\{8\}\).*/\1/' | sort | tail -1)
                   fi
 
-                  if [ -z "$BACKUP_FILE" ]; then
+                  if [ -z "$BACKUP_DATE" ]; then
                     echo "ERROR: No backups found!"
                     exit 1
                   fi
 
-                  echo "Restoring from: $BACKUP_FILE"
-                  aws s3 cp "$BUCKET/$BACKUP_FILE" /tmp/backup.sql.gz \
+                  BACKUP_FILE="nextcloud-backup-${BACKUP_DATE}.tar.gz"
+
+                  echo "Downloading: $BACKUP_FILE"
+                  aws s3 cp "$BUCKET/$BACKUP_FILE" /tmp/backup.tar.gz \
                     --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
 
+                  echo "Extracting backup..."
+                  tar xzf /tmp/backup.tar.gz -C /tmp
+
+                  # Restore database
                   echo "Dropping and recreating database..."
                   mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" \
                     -e "DROP DATABASE IF EXISTS nextcloud; CREATE DATABASE nextcloud;"
 
-                  echo "Importing backup..."
-                  gunzip -c /tmp/backup.sql.gz | \
-                    mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud
+                  echo "Importing database..."
+                  mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud < /tmp/nextcloud.sql
+
+                  # Restore config.php
+                  echo "Restoring config.php..."
+                  mkdir -p /nextcloud-data/config
+                  cp /tmp/config.php /nextcloud-data/config/config.php
+                  chown 33:33 /nextcloud-data/config/config.php
 
                   echo "Restore complete. Scale the deployment back up."
               env:
-                - name: BACKUP_FILE
+                - name: RESTORE_DATE
                   value: "latest"
                 - name: DB_PASS
                   valueFrom:
@@ -71,6 +83,9 @@ spec:
                     secretKeyRef:
                       name: {{ .Values.nextcloud.nextcloud.objectStore.s3.existingSecret }}
                       key: {{ .Values.nextcloud.nextcloud.objectStore.s3.secretKeys.secretKey }}
+              volumeMounts:
+                - name: nextcloud-data
+                  mountPath: /nextcloud-data
               resources:
                 requests:
                   memory: 64Mi
@@ -78,3 +93,7 @@ spec:
                 limits:
                   memory: 256Mi
                   cpu: 200m
+          volumes:
+            - name: nextcloud-data
+              persistentVolumeClaim:
+                claimName: nextcloud-nextcloud
