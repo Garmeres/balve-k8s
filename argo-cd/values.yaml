@@ -66,6 +66,8 @@ argo-cd:
         p, role:developer, applications, get, */*, allow
         p, role:developer, applications, sync, */*, allow
         p, role:developer, applications, action/*, */*, allow
+        p, role:developer, applications, sync, default/argocd, deny
+        p, role:developer, applications, action/*, default/argocd, deny
         p, role:developer, logs, get, */*, allow
         p, role:developer, exec, create, */*, deny
         p, role:developer, repositories, get, *, allow
