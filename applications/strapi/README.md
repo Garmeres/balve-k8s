@@ -16,9 +16,13 @@ s3://balve-strapi/backups/strapi-backup-YYYYMMDD.db.gz
 
 ## Restore
 
-Scale down Strapi first, then trigger the restore job:
+ArgoCD auto-sync must be paused first, otherwise it will scale the deployment back up immediately.
 
 ```bash
+# Pause ArgoCD auto-sync
+kubectl patch app strapi -n argocd --type merge \
+  -p '{"spec":{"syncPolicy":null}}'
+
 # Scale down
 kubectl scale deployment strapi -n strapi --replicas=0
 
@@ -38,6 +42,10 @@ kubectl logs -n strapi job/restore-now
 
 # Scale back up
 kubectl scale deployment strapi -n strapi --replicas=1
+
+# Re-enable ArgoCD auto-sync
+kubectl patch app strapi -n argocd --type merge \
+  -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
 
 # Clean up the job
 kubectl delete job restore-now -n strapi

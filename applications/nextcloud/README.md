@@ -53,9 +53,13 @@ s3://<bucket>/backups/nextcloud-backup-YYYYMMDD.tar.gz
 
 ## Restore
 
-Scale down Nextcloud first, then trigger the restore job:
+ArgoCD auto-sync must be paused first, otherwise it will scale the deployment back up immediately.
 
 ```bash
+# Pause ArgoCD auto-sync
+kubectl patch app nextcloud -n argocd --type merge \
+  -p '{"spec":{"syncPolicy":null}}'
+
 # Scale down
 kubectl scale deployment nextcloud -n nextcloud --replicas=0
 
@@ -75,6 +79,10 @@ kubectl logs -n nextcloud job/restore-now
 
 # Scale back up
 kubectl scale deployment nextcloud -n nextcloud --replicas=1
+
+# Re-enable ArgoCD auto-sync
+kubectl patch app nextcloud -n argocd --type merge \
+  -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
 
 # Clean up the job
 kubectl delete job restore-now -n nextcloud
