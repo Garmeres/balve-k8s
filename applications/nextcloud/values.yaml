@@ -175,7 +175,11 @@ nextcloud:
         twofactor_totp
         twofactor_webauthn;
         do su -s /bin/sh www-data -c "php occ app:install $app" 2>/dev/null || true;
-        done
+        done;
+        su -s /bin/sh www-data -c "php occ files_external:option 3 filesystem_check_changes 0" 2>/dev/null || true;
+        su -s /bin/sh www-data -c "php occ files_external:option 3 previews false" 2>/dev/null || true;
+        su -s /bin/sh www-data -c "php occ files_external:option 4 filesystem_check_changes 0" 2>/dev/null || true;
+        su -s /bin/sh www-data -c "php occ files_external:option 4 previews false" 2>/dev/null || true
 
   phpClientHttpsFix:
     enabled: true
