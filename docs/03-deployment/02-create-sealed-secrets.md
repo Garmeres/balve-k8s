@@ -83,6 +83,7 @@ kubectl create secret generic strapi-smtp --namespace strapi --dry-run=client \
 kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=client \
   --from-literal=username="admin" \
   --from-literal=password="$(openssl rand -base64 16)" \
+  --from-literal=smtp-host="smtp.domeneshop.no" \
   --from-literal=smtp-username="garmeres10" \
   --from-literal=smtp-password="$SMTP_PASS" \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
