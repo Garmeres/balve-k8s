@@ -19,6 +19,9 @@ argo-cd:
       admin.enabled: "false"
       url: https://argocd.balve.garmeres.com
       ui.theme: auto
+      ui.bannercontent: "Shows the status of all services on the Balve server. Green means everything is running normally."
+      ui.bannerposition: top
+      ui.bannerpermanent: "true"
       dex.config: |
         connectors:
           - type: github
@@ -78,5 +81,5 @@ argo-cd:
 
     params:
       server.insecure: true
-      server.x.frame.options: "ALLOW"
+      server.x.frame.options: "SAMEORIGIN"
       server.content.security.policy: "frame-ancestors 'self' https://balve.garmeres.com"
