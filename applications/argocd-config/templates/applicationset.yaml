@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applications
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: {{ .Values.git.repoURL }}
+        revision: {{ .Values.git.revision }}
+        directories:
+          - path: applications/*
+  preservedFields:
+    - syncPolicy
+  syncPolicy:
+    applicationsSync: create-update
+  template:
+    metadata:
+      name: {{ "\"{{path.basename}}\"" }}
+    spec:
+      project: default
+      source:
+        repoURL: {{ .Values.git.repoURL }}
+        targetRevision: {{ .Values.git.revision }}
+        path: {{ "\"{{path}}\"" }}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: {{ "\"{{path.basename}}\"" }}
+      ignoreDifferences:
+        - group: apps
+          kind: StatefulSet
+          jsonPointers:
+            - /spec/volumeClaimTemplates
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          backoff:
+            duration: 30s
+            factor: 2
+            maxDuration: 10m
+          limit: 10
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - RespectIgnoreDifferences=true
