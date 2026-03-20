@@ -66,6 +66,8 @@ spec:
 
                   # Restore user data
                   if [ -f /tmp/userdata.tar.gz ]; then
+                    echo "Wiping existing user data..."
+                    rm -rf /nextcloud-data/data
                     echo "Restoring user data..."
                     mkdir -p /nextcloud-data/data
                     tar xzf /tmp/userdata.tar.gz -C /nextcloud-data/data
