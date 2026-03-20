@@ -1,6 +1,6 @@
 # Restore Nextcloud
 
-Restores the Nextcloud MariaDB database and `config.php` from an S3 backup. Works whether the data is corrupt or the PVC was deleted.
+Restores the Nextcloud MariaDB database, `config.php`, and user files from an S3 backup. Works whether the data is corrupt or the PVC was deleted.
 
 All commands run on the server. To access it:
 
@@ -43,6 +43,7 @@ MariaDB stays running for the database import:
 
 ```
 kubectl scale deployment nextcloud -n nextcloud --replicas=0
+kubectl wait --for=delete pod -l app.kubernetes.io/name=nextcloud -n nextcloud --timeout=60s
 ```
 
 ## Restore

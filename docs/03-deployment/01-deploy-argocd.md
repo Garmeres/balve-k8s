@@ -63,5 +63,5 @@ All users get read-only access (role `viewer`) by default. The following groups 
 | --------------------- | ----------- | ---------------------------- |
 | `Garmeres:admins`     | `admin`     | Full access                  |
 | `Garmeres:developers` | `developer` | View, sync, view logs        |
-| `Technical`           | `developer` | View, sync, view logs        |
+| `Garmeres board`      | `developer` | View, sync, view logs        |
 | _(everyone else)_     | `viewer`    | View application status only |

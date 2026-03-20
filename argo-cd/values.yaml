@@ -77,7 +77,7 @@ argo-cd:
         p, role:developer, extensions, invoke, */*, deny
         g, Garmeres:admins, role:admin
         g, Garmeres:developers, role:developer
-        g, Technical, role:developer
+        g, Garmeres board, role:developer
 
     params:
       server.insecure: true

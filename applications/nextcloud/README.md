@@ -1,6 +1,6 @@
 # Nextcloud
 
-Nextcloud 33 with MariaDB, Redis, S3 primary objectstore, and self-hosted Collabora Online for document editing.
+Nextcloud 33 with MariaDB, Redis, local disk primary storage, and self-hosted Collabora Online for document editing.
 
 See [07-create-object-storage.md](../../docs/02-infrastructure/07-create-object-storage.md) for prerequisite secrets and bucket setup.
 
@@ -41,14 +41,15 @@ The `nextcloud-image-updater` CronJob runs daily at midnight UTC. It compares th
 
 ## Backups
 
-The MariaDB database and `config.php` are backed up to S3 every other day (even days) at 23:00 UTC. Backups are retained for 28 days (~14 backups).
+The MariaDB database, `config.php`, and all user files are backed up to S3 every other day (even days) at 23:00 UTC. Backups are retained for 28 days (~14 backups).
 
-Each backup is a single tar.gz archive containing both the database dump and config.php:
+Each backup is a single tar.gz archive:
 
 ```
 s3://<bucket>/backups/nextcloud-backup-YYYYMMDD.tar.gz
 ├── nextcloud.sql    # MariaDB database dump
-└── config.php       # instanceid, secret, passwordsalt
+├── config.php       # instanceid, secret, passwordsalt
+└── userdata.tar.gz  # all user files from /data
 ```
 
 ## Restore
@@ -129,7 +130,7 @@ kubectl delete job restore-nextcloud -n nextcloud
 
 | Secret              | Keys                                                       |
 | ------------------- | ---------------------------------------------------------- |
-| `nextcloud-admin`   | `username`, `password`, `smtp-username`, `smtp-password`   |
+| `nextcloud-admin`   | `username`, `password`, `smtp-host`, `smtp-username`, `smtp-password` |
 | `nextcloud-s3`      | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`                 |
 | `nextcloud-mariadb` | `mariadb-root-password`, `mariadb-password`, `db-username` |
 | `nextcloud-redis`   | `redis-password`                                           |
