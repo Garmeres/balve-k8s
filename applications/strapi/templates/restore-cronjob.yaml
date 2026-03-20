@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: strapi-db-restore
+  name: strapi-restore
 spec:
   suspend: true
   schedule: "0 0 * * *"
@@ -11,7 +11,7 @@ spec:
       template:
         metadata:
           labels:
-            app: strapi-db-restore
+            app: strapi-restore
         spec:
           restartPolicy: Never
           containers:
@@ -28,18 +28,20 @@ spec:
                   apk add --no-cache aws-cli
 
                   echo "Available backups:"
-                  aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | grep 'strapi-'
+                  aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | grep 'strapi-backup-'
 
-                  if [ "$BACKUP_FILE" = "latest" ]; then
-                    BACKUP_FILE=$(aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
-                      awk '{print $4}' | grep '^strapi-' | sort | tail -1)
+                  BACKUP_DATE="$RESTORE_DATE"
+                  if [ "$BACKUP_DATE" = "latest" ]; then
+                    BACKUP_DATE=$(aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
+                      awk '{print $4}' | grep '^strapi-backup-' | sed 's/strapi-backup-\([0-9]\{8\}\).*/\1/' | sort | tail -1)
                   fi
 
-                  if [ -z "$BACKUP_FILE" ]; then
+                  if [ -z "$BACKUP_DATE" ]; then
                     echo "ERROR: No backups found!"
                     exit 1
                   fi
 
+                  BACKUP_FILE="strapi-backup-${BACKUP_DATE}.db.gz"
                   echo "Restoring from: $BACKUP_FILE"
                   aws s3 cp "$BUCKET/$BACKUP_FILE" /tmp/backup.db.gz \
                     --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
@@ -50,7 +52,7 @@ spec:
                   mv /tmp/backup.db /data/data.db
                   echo "Restore complete. Scale the deployment back up."
               env:
-                - name: BACKUP_FILE
+                - name: RESTORE_DATE
                   value: "latest"
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:

@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: strapi-db-backup
+  name: strapi-backup
 spec:
   schedule: {{ .Values.backupSchedule | quote }}
   concurrencyPolicy: Forbid
@@ -12,7 +12,7 @@ spec:
       template:
         metadata:
           labels:
-            app: strapi-db-backup
+            app: strapi-backup
         spec:
           restartPolicy: OnFailure
           containers:
@@ -26,26 +26,26 @@ spec:
                   S3_ENDPOINT="{{ .Values.s3.endpoint }}"
                   S3_REGION="{{ .Values.s3.region }}"
                   BUCKET="s3://{{ .Values.s3.bucket }}/backups"
+                  TODAY=$(date +%Y%m%d)
                   apk add --no-cache sqlite aws-cli
 
-                  # Clean up old backups (keep 28 days)
-                  echo "Cleaning up backups older than 28 days..."
-                  CUTOFF=$(date -u -d "-28 days" +%Y%m%d 2>/dev/null || date -u -v-28d +%Y%m%d)
-                  aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
-                    awk '{print $4}' | grep '^strapi-' | while read -r file; do
-                      file_date=$(echo "$file" | sed 's/strapi-\([0-9]\{8\}\).*/\1/')
-                      if [ "$file_date" -lt "$CUTOFF" ] 2>/dev/null; then
-                        echo "Deleting old backup: $file"
-                        aws s3 rm "$BUCKET/$file" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
-                      fi
-                    done
-
                   # Create a consistent backup using sqlite3 .backup
-                  echo "Creating backup..."
+                  echo "Backing up database..."
                   sqlite3 /data/data.db ".backup '/tmp/backup.db'"
                   gzip /tmp/backup.db
-                  aws s3 cp /tmp/backup.db.gz "$BUCKET/strapi-$(date +%Y%m%d).db.gz" \
+                  aws s3 cp /tmp/backup.db.gz "$BUCKET/strapi-backup-$TODAY.db.gz" \
                     --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
+
+                  # Clean up old backups (best-effort — runs only after successful backup)
+                  # Keep the 14 newest backups, delete the rest
+                  echo "Cleaning up old backups..."
+                  set +e
+                  aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | \
+                    awk '{print $4}' | grep '^strapi-backup-' | sort -r | tail -n +15 | while read -r file; do
+                    echo "Deleting old backup: $file"
+                    aws s3 rm "$BUCKET/$file" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION"
+                  done
+
                   echo "Done."
               env:
                 - name: AWS_ACCESS_KEY_ID
