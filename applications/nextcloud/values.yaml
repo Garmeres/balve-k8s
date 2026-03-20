@@ -65,6 +65,7 @@ nextcloud:
           'default_phone_region' => 'NO',
           'maintenance_window_start' => 1,
           'check_data_directory_permissions' => false,
+          'filesystem_check_changes' => 0,
         );
 
   ingress:
