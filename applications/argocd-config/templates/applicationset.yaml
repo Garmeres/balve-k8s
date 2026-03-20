@@ -10,8 +10,9 @@ spec:
         revision: {{ .Values.git.revision }}
         directories:
           - path: applications/*
-  preservedFields:
-    - syncPolicy
+  ignoreApplicationDifferences:
+    - jsonPointers:
+        - /spec/syncPolicy
   syncPolicy:
     applicationsSync: create-update
   template:
