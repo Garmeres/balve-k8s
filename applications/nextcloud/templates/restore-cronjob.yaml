@@ -83,6 +83,10 @@ spec:
                     chown 33:33 /nextcloud-data/data /nextcloud-data/data/.ncdata
                   fi
 
+                  echo "Resetting MariaDB user password to match secret..."
+                  mysql -h "{{ .Release.Name }}-mariadb" -u root -p"$DB_ROOT_PASS" \
+                    -e "ALTER USER 'nextcloud'@'%' IDENTIFIED BY '$DB_PASS'; FLUSH PRIVILEGES;"
+
                   echo "Restore complete. Scale the deployment back up."
               env:
                 - name: RESTORE_DATE
@@ -92,6 +96,11 @@ spec:
                     secretKeyRef:
                       name: "{{ .Release.Name }}-mariadb"
                       key: mariadb-password
+                - name: DB_ROOT_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: "{{ .Release.Name }}-mariadb"
+                      key: mariadb-root-password
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:
