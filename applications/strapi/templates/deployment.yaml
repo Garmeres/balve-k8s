@@ -91,6 +91,8 @@ spec:
                   key: SMTP_PASSWORD
             - name: FRAME_ANCESTORS
               value: {{ .Values.frameAncestors | quote }}
+            - name: PUBLIC_URL
+              value: "https://{{ .Values.host }}"
           startupProbe:
             httpGet:
               path: /_health

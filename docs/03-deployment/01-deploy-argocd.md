@@ -45,6 +45,20 @@ helm template argocd-config applications/argocd-config -n argocd \
 
 After this initial apply, ArgoCD manages `argocd-config` like any other application — future changes are synced automatically.
 
+## Sync the argocd-config application
+
+The `argocd-config` application also contains the `argocd` Application (self-monitoring). On a fresh install, you must trigger a manual sync of `argocd-config` so that ArgoCD applies the correct annotations to all its child resources:
+
+```
+kubectl patch application argocd-config -n argocd --type merge -p '{"operation":{"sync":{"syncStrategy":{"apply":{"force":true}}}}}'
+```
+
+Wait for it to become `Synced`:
+
+```
+kubectl get application argocd-config -n argocd -w
+```
+
 ## Access the ArgoCD UI
 
 ArgoCD will pick up the ApplicationSet and begin syncing all applications. Wait for cert-manager to finish syncing:
@@ -65,3 +79,5 @@ All users get read-only access (role `viewer`) by default. The following groups 
 | `Garmeres:developers` | `developer` | View, sync, view logs        |
 | `Garmeres board`      | `developer` | View, sync, view logs        |
 | _(everyone else)_     | `viewer`    | View application status only |
+
+> **Note:** The `developer` role is explicitly denied sync and action access on the `argocd` application. Only admins can sync ArgoCD itself.

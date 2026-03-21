@@ -51,6 +51,7 @@ argo-cd:
                 groups: nc_groups
 
     rbac:
+      scopes: "[groups]"
       policy.default: role:viewer
       policy.csv: |
         p, role:viewer, applications, get, */*, allow
