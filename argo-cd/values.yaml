@@ -49,6 +49,9 @@ argo-cd:
               insecureEnableGroups: true
               claimMapping:
                 groups: nc_groups
+              claimModifications:
+                filterGroupClaims:
+                  groupsFilter: "^(?!admin$|everyone$).*$"
 
     rbac:
       scopes: "[groups]"
