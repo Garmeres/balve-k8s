@@ -25,7 +25,7 @@ spec:
                   S3_ENDPOINT="https://{{ .Values.backupS3.host }}"
                   S3_REGION="{{ .Values.backupS3.region }}"
                   BUCKET="s3://{{ .Values.backupS3.bucket }}/backups"
-                  apk add --no-cache mariadb-client aws-cli apache2-utils
+                  apk add --no-cache mariadb-client aws-cli
 
                   echo "Available backups:"
                   aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | grep 'nextcloud-backup-'
@@ -94,15 +94,23 @@ spec:
                     -e "ALTER USER 'nextcloud'@'%' IDENTIFIED BY '$DB_PASS'; FLUSH PRIVILEGES;"
 
                   if [ -n "$OAUTH_CLIENT_ID" ] && [ -n "$OAUTH_SECRET" ]; then
-                    echo "Re-registering ArgoCD OAuth2 client..."
-                    HASHED_SECRET="1|$(htpasswd -nbBC 10 "" "$OAUTH_SECRET" | tr -d ':\n')"
+                    echo "Re-registering ArgoCD OIDC client..."
+                    mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud <<'EOSQL'
+                      DELETE r FROM oc_oidc_redirect_uris r
+                        JOIN oc_oidc_clients c ON r.client_id = c.id
+                        WHERE c.name = 'ArgoCD';
+                      DELETE FROM oc_oidc_clients WHERE name = 'ArgoCD';
+                      DELETE FROM oc_oauth2_clients WHERE name = 'ArgoCD';
+EOSQL
                     mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
-                      -e "DELETE FROM oc_oauth2_clients WHERE name = 'ArgoCD';"
+                      -e "INSERT INTO oc_oidc_clients (name, client_identifier, secret, signing_alg, type, flow_type, issued_at) VALUES ('ArgoCD', '$OAUTH_CLIENT_ID', '$OAUTH_SECRET', 'RS256', 'confidential', 'code', UNIX_TIMESTAMP());"
+                    OIDC_CLIENT_ID=$(mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud -N \
+                      -e "SELECT id FROM oc_oidc_clients WHERE name = 'ArgoCD';")
                     mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
-                      -e "INSERT INTO oc_oauth2_clients (name, redirect_uri, client_identifier, secret) VALUES ('ArgoCD', 'https://argocd.balve.garmeres.com/api/dex/callback', '$OAUTH_CLIENT_ID', '$HASHED_SECRET');"
-                    echo "ArgoCD OAuth2 client registered."
+                      -e "INSERT INTO oc_oidc_redirect_uris (client_id, redirect_uri) VALUES ($OIDC_CLIENT_ID, 'https://argocd.balve.garmeres.com/api/dex/callback');"
+                    echo "ArgoCD OIDC client registered."
                   else
-                    echo "Skipping OAuth2 registration (argocd-oauth secret not found)."
+                    echo "Skipping OIDC registration (argocd-oauth secret not found)."
                   fi
 
                   echo "Restore complete. Scale the deployment back up."
