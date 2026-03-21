@@ -6,7 +6,7 @@ Kubernetes infrastructure for [Garmeres](https://garmeres.com). Runs on two Hetz
 
 | App                                           | Description                                                          |
 | --------------------------------------------- | -------------------------------------------------------------------- |
-| [strapi](applications/strapi)                 | Headless CMS (Strapi 5, SQLite + Litestream)                         |
+| [strapi](applications/strapi)                 | Headless CMS for garmeres.com (Strapi 5, SQLite)                     |
 | [nextcloud](applications/nextcloud)           | File sharing, calendar, collaboration (MariaDB, Collabora)           |
 | [calendar-sync](applications/calendar-sync)   | CronJob that syncs calendar as JSON to Hetzner S3 and AWS CloudFront |
 | [cert-manager](applications/cert-manager)     | TLS certificates via Let's Encrypt                                   |
@@ -24,7 +24,7 @@ If you're a technical manager and need to give someone access to Balve (e.g. a c
 - **TLS:** cert-manager with Let's Encrypt HTTP-01
 - **GitOps:** ArgoCD ApplicationSet discovers all apps under `applications/`
 - **Secrets:** Sealed Secrets — encrypted in git, decrypted by controller
-- **Storage:** Hetzner Object Storage (S3-compatible) for media, backups, and Litestream replication
+- **Storage:** Hetzner Object Storage (S3-compatible) for media and backups
 
 ## Documentation
 
