@@ -95,13 +95,12 @@ spec:
 
                   if [ -n "$OAUTH_CLIENT_ID" ] && [ -n "$OAUTH_SECRET" ]; then
                     echo "Re-registering ArgoCD OIDC client..."
-                    mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud <<'EOSQL'
-                      DELETE r FROM oc_oidc_redirect_uris r
-                        JOIN oc_oidc_clients c ON r.client_id = c.id
-                        WHERE c.name = 'ArgoCD';
-                      DELETE FROM oc_oidc_clients WHERE name = 'ArgoCD';
-                      DELETE FROM oc_oauth2_clients WHERE name = 'ArgoCD';
-EOSQL
+                    mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
+                      -e "DELETE r FROM oc_oidc_redirect_uris r JOIN oc_oidc_clients c ON r.client_id = c.id WHERE c.name = 'ArgoCD';"
+                    mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
+                      -e "DELETE FROM oc_oidc_clients WHERE name = 'ArgoCD';"
+                    mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
+                      -e "DELETE FROM oc_oauth2_clients WHERE name = 'ArgoCD';"
                     mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
                       -e "INSERT INTO oc_oidc_clients (name, client_identifier, secret, signing_alg, type, flow_type, issued_at) VALUES ('ArgoCD', '$OAUTH_CLIENT_ID', '$OAUTH_SECRET', 'RS256', 'confidential', 'code', UNIX_TIMESTAMP());"
                     OIDC_CLIENT_ID=$(mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud -N \
