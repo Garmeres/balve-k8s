@@ -1,4 +1,4 @@
-# Manage Nextcloud users
+# Manage Balve users
 
 ## Add a new user
 

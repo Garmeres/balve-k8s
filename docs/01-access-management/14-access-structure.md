@@ -1,4 +1,4 @@
-# Access management
+# Access structure
 
 The board assigns one member as **teknisk ansvarlig**. This person holds root and infrastructure access and an admin account in each application. At least one other board member should also have root access, so it is not lost in an emergency.
 
@@ -68,10 +68,3 @@ Individual accounts for using the services. Created by an admin user.
 - **Email:** Personal `@garmeres.com` address (e.g. `fornavn@garmeres.com`) — forwards to the person's personal email
 - **Nextcloud:** Personal account at [balve.garmeres.com](https://balve.garmeres.com) — files, calendar, contacts
 - **Strapi:** Editor account at [strapi.balve.garmeres.com/admin](https://strapi.balve.garmeres.com/admin) — content management
-
-## Guides
-
-1. [Handover](02-handover.md) — Transfer the teknisk ansvarlig role to a new person
-2. [Grant access](03-grant-access.md) — Detailed reference for granting access at each level
-3. [Revoke access](04-revoke-access.md) — Detailed reference for revoking access at each level
-4. [Audit access](05-audit-access.md) — Check who currently has access

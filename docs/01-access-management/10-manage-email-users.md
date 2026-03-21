@@ -16,7 +16,7 @@ When someone new joins the board, create an email address for them (e.g. `fornav
 4. Enter the address (e.g. `fornavn`) and generate a password
 5. Click **Opprett**
 
-Then share the email credentials with the person via Nextcloud Passwords — see [Share a password with a user](07-manage-nextcloud-user.md#share-a-password-with-a-user).
+Then share the email credentials with the person via Nextcloud Passwords — see [Share a password with a user](09-manage-balve-users.md#share-a-password-with-a-user).
 
 ---
 
@@ -66,4 +66,4 @@ If someone has forgotten their email password:
 2. Go to **Mine domener** → **garmeres.com** → **Epost**
 3. Find the email address and click it
 4. Enter a new password and save
-5. Share the new password with the person via Nextcloud Passwords — see [Share a password with a user](07-manage-nextcloud-user.md#share-a-password-with-a-user)
+5. Share the new password with the person via Nextcloud Passwords — see [Share a password with a user](09-manage-balve-users.md#share-a-password-with-a-user)
