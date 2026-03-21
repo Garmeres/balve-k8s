@@ -66,6 +66,7 @@ spec:
                   echo "Restoring config.php..."
                   mkdir -p /nextcloud-data/config
                   cp /tmp/config.php /nextcloud-data/config/config.php
+                  sed -i "s|'dbpassword' =>.*|'dbpassword' => '$DB_PASS',|" /nextcloud-data/config/config.php
                   chown 33:33 /nextcloud-data/config/config.php
 
                   # Restore user data
