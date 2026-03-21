@@ -4,7 +4,7 @@ Self-hosted Strapi CMS with SQLite on a PersistentVolumeClaim and S3 media stora
 
 Email is sent via SMTP (Domeneshop) using the `@strapi/provider-email-nodemailer` plugin. From address: `balve@garmeres.com`, reply-to: `admin@garmeres.com`.
 
-See [07-create-object-storage.md](../../docs/02-infrastructure/07-create-object-storage.md) for prerequisite secrets and bucket setup.
+See [08-create-object-storage.md](../../docs/02-infrastructure/08-create-object-storage.md) for prerequisite secrets and bucket setup.
 
 ## Backups
 

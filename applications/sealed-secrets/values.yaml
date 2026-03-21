@@ -1,4 +1,8 @@
 sealed-secrets:
+  livenessProbe:
+    initialDelaySeconds: 30
+  readinessProbe:
+    initialDelaySeconds: 30
   resources:
     requests:
       memory: 32Mi

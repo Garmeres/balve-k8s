@@ -2,7 +2,7 @@
 
 Nextcloud 33 with MariaDB, Redis, local disk primary storage, and self-hosted Collabora Online for document editing.
 
-See [07-create-object-storage.md](../../docs/02-infrastructure/07-create-object-storage.md) for prerequisite secrets and bucket setup.
+See [08-create-object-storage.md](../../docs/02-infrastructure/08-create-object-storage.md) for prerequisite secrets and bucket setup.
 
 ## Installed apps
 
@@ -128,9 +128,9 @@ kubectl delete job restore-nextcloud -n nextcloud
 
 ## Sealed secrets
 
-| Secret              | Keys                                                       |
-| ------------------- | ---------------------------------------------------------- |
+| Secret              | Keys                                                                  |
+| ------------------- | --------------------------------------------------------------------- |
 | `nextcloud-admin`   | `username`, `password`, `smtp-host`, `smtp-username`, `smtp-password` |
-| `nextcloud-s3`      | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`                 |
-| `nextcloud-mariadb` | `mariadb-root-password`, `mariadb-password`, `db-username` |
-| `nextcloud-redis`   | `redis-password`                                           |
+| `nextcloud-s3`      | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`                            |
+| `nextcloud-mariadb` | `mariadb-root-password`, `mariadb-password`, `db-username`            |
+| `nextcloud-redis`   | `redis-password`                                                      |
