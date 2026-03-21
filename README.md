@@ -4,13 +4,14 @@ Kubernetes infrastructure for [Garmeres](https://garmeres.com). Runs on two Hetz
 
 ## Applications
 
-| App                                           | Description                                                |
-| --------------------------------------------- | ---------------------------------------------------------- |
-| [strapi](applications/strapi)                 | Headless CMS (Strapi 5, SQLite + Litestream)               |
-| [nextcloud](applications/nextcloud)           | File sharing, calendar, collaboration (MariaDB, Collabora) |
-| [calendar-sync](applications/calendar-sync)   | CronJob that exports calendar to S3 as JSON                |
-| [cert-manager](applications/cert-manager)     | TLS certificates via Let's Encrypt                         |
-| [sealed-secrets](applications/sealed-secrets) | Encrypted secrets stored in git                            |
+| App                                           | Description                                                          |
+| --------------------------------------------- | -------------------------------------------------------------------- |
+| [strapi](applications/strapi)                 | Headless CMS (Strapi 5, SQLite + Litestream)                         |
+| [nextcloud](applications/nextcloud)           | File sharing, calendar, collaboration (MariaDB, Collabora)           |
+| [calendar-sync](applications/calendar-sync)   | CronJob that syncs calendar as JSON to Hetzner S3 and AWS CloudFront |
+| [cert-manager](applications/cert-manager)     | TLS certificates via Let's Encrypt                                   |
+| [sealed-secrets](applications/sealed-secrets) | Encrypted secrets stored in git                                      |
+| [argocd-config](applications/argocd-config)   | Sealed secrets for ArgoCD Dex OAuth                                  |
 
 ## Need to grant or revoke access?
 
@@ -29,7 +30,11 @@ If you're a technical manager and need to give someone access to Balve (e.g. a c
 
 ### [1. Access management](docs/01-access-management/)
 
-Grant, revoke, and audit administrative access to the platform.
+1. [Overview](docs/01-access-management/01-overview.md)
+2. [Handover](docs/01-access-management/02-handover.md)
+3. [Grant access](docs/01-access-management/03-grant-access.md)
+4. [Revoke access](docs/01-access-management/04-revoke-access.md)
+5. [Audit access](docs/01-access-management/05-audit-access.md)
 
 ### [2. Infrastructure](docs/02-infrastructure/)
 
@@ -46,3 +51,11 @@ Grant, revoke, and audit administrative access to the platform.
 1. [Deploy ArgoCD](docs/03-deployment/01-deploy-argocd.md)
 2. [Sealed secrets](docs/03-deployment/02-create-sealed-secrets.md)
 3. [Nextcloud OIDC for ArgoCD](docs/03-deployment/03-nextcloud-oidc.md)
+
+### [4. Disaster recovery](docs/04-disaster-recovery/)
+
+1. [Triage](docs/04-disaster-recovery/01-triage.md)
+2. [Restore Nextcloud](docs/04-disaster-recovery/02-restore-nextcloud.md)
+3. [Restore Strapi](docs/04-disaster-recovery/03-restore-strapi.md)
+4. [Reseal secrets](docs/04-disaster-recovery/04-reseal-secrets.md)
+5. [Full rebuild](docs/04-disaster-recovery/05-full-rebuild.md)
