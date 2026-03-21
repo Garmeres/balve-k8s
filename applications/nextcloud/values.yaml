@@ -37,8 +37,8 @@ nextcloud:
       domain: garmeres.com
       smtp:
         host: smtp.domeneshop.no
-        secure: ssl
-        port: 465
+        secure: tls
+        port: 587
         authtype: LOGIN
 
     phpConfigs:

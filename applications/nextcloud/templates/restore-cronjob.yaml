@@ -72,6 +72,8 @@ spec:
                   sed -i "s|'mail_smtphost' =>.*|'mail_smtphost' => '$SMTP_HOST',|" /nextcloud-data/config/config.php
                   sed -i "s|'mail_smtpname' =>.*|'mail_smtpname' => '$SMTP_USER',|" /nextcloud-data/config/config.php
                   sed -i "s|'mail_smtppassword' =>.*|'mail_smtppassword' => '$SMTP_PASS',|" /nextcloud-data/config/config.php
+                  sed -i "s|'mail_smtpport' =>.*|'mail_smtpport' => '587',|" /nextcloud-data/config/config.php
+                  sed -i "s|'mail_smtpsecure' =>.*|'mail_smtpsecure' => 'tls',|" /nextcloud-data/config/config.php
                   chown 33:33 /nextcloud-data/config/config.php
 
                   # Restore user data
