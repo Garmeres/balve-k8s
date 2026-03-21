@@ -8,14 +8,9 @@ Backups are created every other day (odd days) at 23:00 UTC. The 14 newest backu
 
 ## Before you start
 
-You need server access. If you're not already logged in:
+You need `ssh balve-master` to work. If it doesn't, set it up first — see [Set up SSH access](01-triage.md#set-up-ssh-access).
 
-1. Log in to [console.hetzner.cloud](https://console.hetzner.cloud) with your own Hetzner account
-2. Open the project → _Servers_ → `master-1`
-3. Click the **>\_ Console** icon (top right) to open a web terminal
-4. Log in as `root`
-
-All commands below run on this server.
+All commands below run on your local machine.
 
 ---
 
@@ -24,14 +19,13 @@ All commands below run on this server.
 Trigger an ArgoCD sync to make sure everything is in place — if nothing was deleted, this does nothing:
 
 ```
-kubectl patch app strapi -n argocd --type merge \
-  -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{}}}'
+ssh balve-master "kubectl patch app strapi -n argocd --type merge -p '{\"operation\":{\"initiatedBy\":{\"username\":\"admin\"},\"sync\":{}}}'"
 ```
 
 Wait for the storage volume to be ready:
 
 ```
-kubectl wait --for=jsonpath=.status.phase=Bound pvc/strapi-data -n strapi --timeout=60s
+ssh balve-master "kubectl wait --for=jsonpath=.status.phase=Bound pvc/strapi-data -n strapi --timeout=60s"
 ```
 
 If this times out, check the ArgoCD dashboard at [argocd.balve.garmeres.com](https://argocd.balve.garmeres.com) — the `strapi` app may have an error that needs to be resolved first (e.g. missing secrets → [Re-seal secrets](04-reseal-secrets.md)).
@@ -43,8 +37,7 @@ If this times out, check the ArgoCD dashboard at [argocd.balve.garmeres.com](htt
 ArgoCD will try to undo the changes you make in the next step (scaling down Strapi). Pause it:
 
 ```
-kubectl patch app strapi -n argocd --type merge \
-  -p '{"spec":{"syncPolicy":null}}'
+ssh balve-master "kubectl patch app strapi -n argocd --type merge -p '{\"spec\":{\"syncPolicy\":null}}'"
 ```
 
 ---
@@ -54,7 +47,8 @@ kubectl patch app strapi -n argocd --type merge \
 Stop the application so the restore job can safely replace the database:
 
 ```
-kubectl scale deployment strapi -n strapi --replicas=0
+ssh balve-master "kubectl scale deployment strapi -n strapi --replicas=0"
+ssh balve-master "kubectl wait --for=delete pod -l app=strapi -n strapi --timeout=60s"
 ```
 
 ---
@@ -64,23 +58,22 @@ kubectl scale deployment strapi -n strapi --replicas=0
 **To restore the latest backup:**
 
 ```
-kubectl create job --from=cronjob/strapi-restore restore-strapi -n strapi
+ssh balve-master "kubectl create job --from=cronjob/strapi-restore restore-strapi -n strapi"
 ```
 
 **To restore a specific date**, replace `20260317` with the date you want (YYYYMMDD). You can see available backup dates in the Hetzner Object Storage console under `balve-strapi/backups/`:
 
 ```
-kubectl create job --from=cronjob/strapi-restore restore-strapi -n strapi \
-  --dry-run=client -o json | \
-  jq '(.spec.template.spec.containers[0].env[] | select(.name == "RESTORE_DATE")).value = "20260317"' | \
-  kubectl apply -f -
+ssh balve-master "kubectl create job --from=cronjob/strapi-restore restore-strapi -n strapi --dry-run=client -o json | jq '(.spec.template.spec.containers[0].env[] | select(.name == \"RESTORE_DATE\")).value = \"20260317\"' | kubectl apply -f -"
 ```
 
-Watch the restore progress (this may take a minute to start):
+Watch the restore progress (the pod may take a minute or two to start):
 
 ```
-kubectl logs -f --pod-running-timeout=60s -n strapi job/restore-strapi
+ssh balve-master "kubectl logs -f --pod-running-timeout=120s -n strapi job/restore-strapi"
 ```
+
+If it fails with `is waiting to start: ContainerCreating`, wait a moment and re-run the command.
 
 Wait for the job to complete. If the logs show errors, read the message — it usually explains what went wrong (e.g. backup not found for the given date).
 
@@ -88,10 +81,11 @@ Wait for the job to complete. If the logs show errors, read the message — it u
 
 ## Step 5: Start Strapi
 
-Start Strapi again:
+Start Strapi again and wait for it to become ready:
 
 ```
-kubectl scale deployment strapi -n strapi --replicas=1
+ssh balve-master "kubectl scale deployment strapi -n strapi --replicas=1"
+ssh balve-master "kubectl rollout status deployment/strapi -n strapi --timeout=300s"
 ```
 
 ---
@@ -101,8 +95,7 @@ kubectl scale deployment strapi -n strapi --replicas=1
 Turn auto-sync back on so ArgoCD manages Strapi again:
 
 ```
-kubectl patch app strapi -n argocd --type merge \
-  -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+ssh balve-master "kubectl patch app strapi -n argocd --type merge -p '{\"spec\":{\"syncPolicy\":{\"automated\":{\"prune\":true,\"selfHeal\":true}}}}'"
 ```
 
 ---
@@ -112,7 +105,7 @@ kubectl patch app strapi -n argocd --type merge \
 Delete the restore job (it's no longer needed):
 
 ```
-kubectl delete job restore-strapi -n strapi
+ssh balve-master "kubectl delete job restore-strapi -n strapi"
 ```
 
 ---
