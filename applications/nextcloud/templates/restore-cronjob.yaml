@@ -25,7 +25,7 @@ spec:
                   S3_ENDPOINT="https://{{ .Values.backupS3.host }}"
                   S3_REGION="{{ .Values.backupS3.region }}"
                   BUCKET="s3://{{ .Values.backupS3.bucket }}/backups"
-                  apk add --no-cache mariadb-client aws-cli
+                  apk add --no-cache mariadb-client aws-cli apache2-utils
 
                   echo "Available backups:"
                   aws s3 ls "$BUCKET/" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" | grep 'nextcloud-backup-'
@@ -67,6 +67,11 @@ spec:
                   mkdir -p /nextcloud-data/config
                   cp /tmp/config.php /nextcloud-data/config/config.php
                   sed -i "s|'dbpassword' =>.*|'dbpassword' => '$DB_PASS',|" /nextcloud-data/config/config.php
+
+                  echo "Patching SMTP credentials in config.php..."
+                  sed -i "s|'mail_smtphost' =>.*|'mail_smtphost' => '$SMTP_HOST',|" /nextcloud-data/config/config.php
+                  sed -i "s|'mail_smtpname' =>.*|'mail_smtpname' => '$SMTP_USER',|" /nextcloud-data/config/config.php
+                  sed -i "s|'mail_smtppassword' =>.*|'mail_smtppassword' => '$SMTP_PASS',|" /nextcloud-data/config/config.php
                   chown 33:33 /nextcloud-data/config/config.php
 
                   # Restore user data
@@ -88,6 +93,18 @@ spec:
                   mysql -h "{{ .Release.Name }}-mariadb" -u root -p"$DB_ROOT_PASS" \
                     -e "ALTER USER 'nextcloud'@'%' IDENTIFIED BY '$DB_PASS'; FLUSH PRIVILEGES;"
 
+                  if [ -n "$OAUTH_CLIENT_ID" ] && [ -n "$OAUTH_SECRET" ]; then
+                    echo "Re-registering ArgoCD OAuth2 client..."
+                    HASHED_SECRET="1|$(htpasswd -nbBC 10 "" "$OAUTH_SECRET" | tr -d ':\n')"
+                    mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
+                      -e "DELETE FROM oc_oauth2_clients WHERE name = 'ArgoCD';"
+                    mysql -h "{{ .Release.Name }}-mariadb" -u nextcloud -p"$DB_PASS" nextcloud \
+                      -e "INSERT INTO oc_oauth2_clients (name, redirect_uri, client_identifier, secret) VALUES ('ArgoCD', 'https://argocd.balve.garmeres.com/api/dex/callback', '$OAUTH_CLIENT_ID', '$HASHED_SECRET');"
+                    echo "ArgoCD OAuth2 client registered."
+                  else
+                    echo "Skipping OAuth2 registration (argocd-oauth secret not found)."
+                  fi
+
                   echo "Restore complete. Scale the deployment back up."
               env:
                 - name: RESTORE_DATE
@@ -102,6 +119,33 @@ spec:
                     secretKeyRef:
                       name: "{{ .Release.Name }}-mariadb"
                       key: mariadb-root-password
+                - name: SMTP_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: nextcloud-admin
+                      key: smtp-host
+                - name: SMTP_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: nextcloud-admin
+                      key: smtp-username
+                - name: SMTP_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: nextcloud-admin
+                      key: smtp-password
+                - name: OAUTH_CLIENT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: argocd-oauth
+                      key: clientID
+                      optional: true
+                - name: OAUTH_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: argocd-oauth
+                      key: clientSecret
+                      optional: true
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:
