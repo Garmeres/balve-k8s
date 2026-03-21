@@ -34,7 +34,7 @@ The sealed-secrets controller generated a new signing key when it was redeployed
 
 Follow the full [Sealed Secrets deployment guide](../03-deployment/02-create-sealed-secrets.md) from the beginning. It walks you through each secret step by step:
 
-1. **Export the new public cert** from the cluster
+1. **Export the new public cert** from the cluster (uploaded to `balve-config` bucket, downloaded from Hetzner console)
 2. **Regenerate S3 credentials** at Hetzner (Object Storage → Manage credentials)
 3. **Reset the SMTP password** at Domeneshop (garmeres10 email account)
 4. **Regenerate the GitHub OAuth secret** for ArgoCD

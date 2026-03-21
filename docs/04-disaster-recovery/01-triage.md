@@ -41,7 +41,7 @@ Compare the IP in the response with the worker's public IP from Hetzner.
 | What you see    | What to do                                                                                                                                                              |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | IPs match       | Continue to step 3                                                                                                                                                      |
-| IPs don't match | Update the DNS records at Domeneshop — see [DNS records](../02-infrastructure/06-dns-records.md). Both `balve.garmeres.com` and `*.balve.garmeres.com` need the new IP. |
+| IPs don't match | Update the DNS records at Domeneshop — see [DNS records](../02-infrastructure/07-dns-records.md). Both `balve.garmeres.com` and `*.balve.garmeres.com` need the new IP. |
 
 ---
 
@@ -75,6 +75,40 @@ worker-1   Ready    <none>                 ...    ...
 | Both nodes show `Ready`               | Continue to step 4                                                                                               |
 | Command fails or server doesn't exist | → [Full rebuild](05-full-rebuild.md)                                                                             |
 | One node shows `NotReady`             | Wait 5 minutes and try again — it may be rebooting. If it stays `NotReady`, → [Full rebuild](05-full-rebuild.md) |
+
+### Set up SSH access
+
+The remaining guides (restore, re-seal) use `ssh balve-master` to run commands from your local machine. Set this up now so you can copy-paste commands directly.
+
+**Generate an SSH key** (skip if you already have one):
+
+```
+ssh-keygen -t ed25519 -f ~/.ssh/hetzner-balve
+```
+
+Press Enter twice (no passphrase).
+
+**Add the key to the server.** In the Hetzner web terminal you opened above, run:
+
+```
+echo '<paste the contents of ~/.ssh/hetzner-balve.pub>' >> ~/.ssh/authorized_keys
+```
+
+**Configure your local SSH.** Get the server IP from the Hetzner Console (`master-1` page) and add this to `~/.ssh/config`:
+
+```
+Host balve-master
+    HostName <master-1 public IP>
+    User root
+    IdentityFile ~/.ssh/hetzner-balve
+    IdentitiesOnly yes
+```
+
+**Test it:**
+
+```
+ssh balve-master "hostname"
+```
 
 ---
 

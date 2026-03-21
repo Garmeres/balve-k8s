@@ -10,6 +10,7 @@ For each firewall listed below, go to _Firewalls_ -> _Create firewall_ in the He
 
 | Source      | Protocol | Port  |
 | ----------- | -------- | ----- |
+| Any IPv4    | TCP      | 22    |
 | Any IPv4    | ICMP     | -     |
 | 10.0.0.0/24 | TCP      | 6443  |
 | 10.0.0.0/24 | TCP      | 10250 |
@@ -27,6 +28,7 @@ Allow all
 
 | Source      | Protocol | Port  |
 | ----------- | -------- | ----- |
+| Any IPv4    | TCP      | 22    |
 | 10.0.0.0/24 | UDP      | 8472  |
 | 10.0.0.0/24 | TCP      | 10250 |
 | Any IPv4    | TCP      | 80    |

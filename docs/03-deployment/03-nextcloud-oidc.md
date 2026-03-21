@@ -10,24 +10,19 @@ After Nextcloud is deployed and healthy, you can add it as a login provider for 
 
 ---
 
-## Register ArgoCD as an OAuth 2.0 client
+## Register ArgoCD as an OIDC client
 
-Get the Nextcloud admin password. **On the server** (Hetzner console → `master-1`):
+Delete any existing ArgoCD client, then create a new one via the OIDC app admin API:
 
 ```
-kubectl get secret nextcloud-admin -n nextcloud -o jsonpath='{.data.password}' | base64 -d
+ssh balve-master "ADMIN_PASS=\$(kubectl get secret nextcloud-admin -n nextcloud -o jsonpath='{.data.password}' | base64 -d) && \
+  DB_PASS=\$(kubectl get secret nextcloud-mariadb -n nextcloud -o jsonpath='{.data.mariadb-password}' | base64 -d) && \
+  EXISTING=\$(kubectl exec statefulset/nextcloud-mariadb -n nextcloud -- mariadb -u nextcloud -p\$DB_PASS nextcloud -N -e \"SELECT id FROM oc_oidc_clients WHERE name='ArgoCD';\") && \
+  for id in \$EXISTING; do kubectl exec deploy/nextcloud -n nextcloud -- curl -s -u admin:\$ADMIN_PASS -H 'OCS-APIREQUEST: true' -X DELETE \"http://localhost/index.php/apps/oidc/clients/\$id\"; done && \
+  kubectl exec deploy/nextcloud -n nextcloud -- curl -s -u admin:\$ADMIN_PASS -H 'OCS-APIREQUEST: true' -X POST 'http://localhost/index.php/apps/oidc/clients' -d 'name=ArgoCD&redirectUri=https://argocd.balve.garmeres.com/api/dex/callback&signingAlg=RS256&type=confidential&flowType=code'"
 ```
 
-Log in to [https://balve.garmeres.com](https://balve.garmeres.com) with username `admin` and the password above.
-
-Go to _Administration settings_ → _Security_ → _OAuth 2.0 clients_ and add a new client:
-
-| Field        | Value                                                |
-| ------------ | ---------------------------------------------------- |
-| Name         | `ArgoCD`                                             |
-| Redirect URI | `https://argocd.balve.garmeres.com/api/dex/callback` |
-
-Copy the **Client ID** and **Client Secret**.
+The response JSON contains `client_identifier` and `secret`. Copy both values.
 
 ## Create the sealed secret
 
@@ -40,27 +35,52 @@ NEXTCLOUD_CLIENT_SECRET='<Client Secret>'
 kubectl create secret generic argocd-dex-nextcloud --namespace argocd --dry-run=client \
   --from-literal=clientID="$NEXTCLOUD_CLIENT_ID" \
   --from-literal=clientSecret="$NEXTCLOUD_CLIENT_SECRET" \
-  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
-  > argo-cd/templates/sealed-argocd-dex-nextcloud.yaml
+  -o yaml | \
+  kubectl label --local -f - app.kubernetes.io/part-of=argocd --dry-run=client -o yaml | \
+  kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/argocd-config/templates/sealed-argocd-dex-nextcloud.yaml
+```
+
+Create a copy in the Nextcloud namespace (used by the restore job to re-register the OAuth client automatically):
+
+```
+kubectl create secret generic argocd-oauth --namespace nextcloud --dry-run=client \
+  --from-literal=clientID="$NEXTCLOUD_CLIENT_ID" \
+  --from-literal=clientSecret="$NEXTCLOUD_CLIENT_SECRET" \
+  -o yaml | \
+  kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/nextcloud/templates/sealed-argocd-oauth.yaml
 ```
 
 ## Commit and push
 
 ```
-git add argo-cd/templates/sealed-argocd-dex-nextcloud.yaml
+git add applications/argocd-config/templates/sealed-argocd-dex-nextcloud.yaml applications/nextcloud/templates/sealed-argocd-oauth.yaml
 git commit -m "Add Nextcloud Dex sealed secret"
 git push
 ```
 
-## Reapply ArgoCD
+## Sync and restart Dex
 
-ArgoCD does not reconcile itself, so reapply it to pick up the new secret. **On the server** (Hetzner console → `master-1`):
+Force a sync of `argocd-config` and `argocd`:
 
 ```
-cd ~/balve-k8s && git fetch origin && git reset --hard origin/main
-helm template argocd argo-cd -n argocd | kubectl apply -n argocd --server-side -f -
+ssh balve-master "kubectl patch application argocd-config -n argocd --type merge -p '{\"operation\":{\"sync\":{\"syncStrategy\":{\"apply\":{\"force\":true}}}}}'"
+ssh balve-master "kubectl patch application argocd -n argocd --type merge -p '{\"operation\":{\"sync\":{\"syncStrategy\":{\"apply\":{\"force\":true}}}}}'"
+```
+
+Restart Dex so it loads the GitHub and Nextcloud OAuth credentials:
+
+```
+ssh balve-master "kubectl rollout restart deployment argocd-dex-server -n argocd"
 ```
 
 ## Verify
 
-Open [https://argocd.balve.garmeres.com](https://argocd.balve.garmeres.com) and log in with Nextcloud.
+Watch until `argocd` shows **Healthy**:
+
+```
+ssh balve-master "kubectl get applications -n argocd -w"
+```
+
+Open [https://argocd.balve.garmeres.com](https://argocd.balve.garmeres.com) and log in with Github.

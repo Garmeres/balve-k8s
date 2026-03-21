@@ -41,10 +41,11 @@ If you're a technical manager and need to give someone access to Balve (e.g. a c
 1. [Networks](docs/02-infrastructure/01-networks.md)
 2. [Placement groups](docs/02-infrastructure/02-servers-placement-groups.md)
 3. [Firewalls](docs/02-infrastructure/03-firewalls.md)
-4. [Master node](docs/02-infrastructure/04-server-master-node.md)
-5. [Worker node](docs/02-infrastructure/05-server-worker-node.md)
-6. [DNS records](docs/02-infrastructure/06-dns-records.md)
-7. [Object storage](docs/02-infrastructure/07-create-object-storage.md)
+4. [SSH keys](docs/02-infrastructure/04-ssh-keys.md)
+5. [Master node](docs/02-infrastructure/05-server-master-node.md)
+6. [Worker node](docs/02-infrastructure/06-server-worker-node.md)
+7. [DNS records](docs/02-infrastructure/07-dns-records.md)
+8. [Object storage](docs/02-infrastructure/08-create-object-storage.md)
 
 ### [3. Deployment](docs/03-deployment/)
 

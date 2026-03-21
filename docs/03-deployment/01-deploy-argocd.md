@@ -1,83 +1,66 @@
 # Deploy ArgoCD
 
-All commands in this document are run on `master-1` via the Hetzner web console.
+All commands in this document are run **on your local machine**, from the root of the `balve-k8s` repo.
 
-## GitHub Teams
-
-Go to [github.com/orgs/garmeres/teams](https://github.com/orgs/garmeres/teams) and create:
-
-- `admins` — full ArgoCD access
-- `developers` — read + sync access
-
-## Clone the repo
+Wait for the cloud-init script to finish before starting:
 
 ```
-git clone https://github.com/Garmeres/balve-k8s.git
-cd balve-k8s
+ssh balve-master "cloud-init status --wait"
 ```
 
-## Install ArgoCD
+## 1. Create the namespace
+
+```
+ssh balve-master "kubectl apply --server-side -f -" < argo-cd/templates/namespace.yaml
+```
+
+## 2. Install ArgoCD
 
 ```
 helm dependency build argo-cd
-helm template argocd argo-cd -n argocd | kubectl apply -n argocd --server-side -f -
+helm template argocd argo-cd -n argocd | ssh balve-master "kubectl apply -n argocd --server-side -f -"
 ```
 
-> **Note:** ArgoCD does not reconcile itself. Any changes to `argo-cd/values.yaml` must be reapplied by pulling the latest code and re-running the command above.
-
-## Verify the installation
-
-Wait for all pods to become ready:
+This installs ArgoCD into the cluster. Wait for all pods to become ready:
 
 ```
-kubectl get pods -n argocd -w
+ssh balve-master "kubectl get pods -n argocd -w"
 ```
 
-## Apply the ApplicationSet
+All pods should show `Running` or `Completed`. Press `Ctrl+C` to stop watching.
 
-Once all ArgoCD pods are running, bootstrap the `argocd-config` application (which contains the ApplicationSet):
+> **Note:** ArgoCD does not manage its own installation. If you later change `argo-cd/values.yaml`, you must re-run the commands above.
+
+## 3. Apply the ApplicationSet
+
+This tells ArgoCD about all the applications it should manage:
 
 ```
 helm template argocd-config applications/argocd-config -n argocd \
   --show-only templates/applicationset.yaml \
-  | kubectl apply -n argocd --server-side -f -
+  | ssh balve-master "kubectl apply -n argocd --server-side -f -"
 ```
 
-After this initial apply, ArgoCD manages `argocd-config` like any other application — future changes are synced automatically.
+ArgoCD will start syncing applications automatically. After this initial apply, ArgoCD manages `argocd-config` like any other application — future changes are synced from git.
 
-## Sync the argocd-config application
+## 4. Force sync argocd-config
 
-The `argocd-config` application also contains the `argocd` Application (self-monitoring). On a fresh install, you must trigger a manual sync of `argocd-config` so that ArgoCD applies the correct annotations to all its child resources:
-
-```
-kubectl patch application argocd-config -n argocd --type merge -p '{"operation":{"sync":{"syncStrategy":{"apply":{"force":true}}}}}'
-```
-
-Wait for it to become `Synced`:
+On a fresh install, ArgoCD needs a one-time forced sync of the `argocd-config` application so it applies the correct annotations to all its child resources. This will show as `OutOfSync` until the [sealed secrets](02-create-sealed-secrets.md) are created in the next step — that is expected.
 
 ```
-kubectl get application argocd-config -n argocd -w
+ssh balve-master "kubectl patch application argocd-config -n argocd --type merge -p '{\"operation\":{\"sync\":{\"syncStrategy\":{\"apply\":{\"force\":true}}}}}'"
 ```
 
-## Access the ArgoCD UI
+## 5. Verify
 
-ArgoCD will pick up the ApplicationSet and begin syncing all applications. Wait for cert-manager to finish syncing:
+Check that all applications are syncing:
 
 ```
-kubectl get applications -n argocd
+ssh balve-master "kubectl get applications -n argocd"
 ```
 
-Once it shows `Synced` and `Healthy`, open [https://argocd.balve.garmeres.com](https://argocd.balve.garmeres.com). GitHub login will not work until the sealed secrets are created in the [next step](02-create-sealed-secrets.md).
+Wait for `cert-manager` to show `Synced` and `Healthy` — this is needed for HTTPS certificates. Other applications will show errors until the [sealed secrets](02-create-sealed-secrets.md) are created in the next step.
 
-## RBAC
+Once cert-manager is healthy, the ArgoCD dashboard is available at [https://argocd.balve.garmeres.com](https://argocd.balve.garmeres.com).
 
-All users get read-only access (role `viewer`) by default. The following groups have elevated access via GitHub or Nextcloud (see [03-nextcloud-oidc.md](03-nextcloud-oidc.md)):
-
-| Group                 | Role        | Access                       |
-| --------------------- | ----------- | ---------------------------- |
-| `Garmeres:admins`     | `admin`     | Full access                  |
-| `Garmeres:developers` | `developer` | View, sync, view logs        |
-| `Garmeres board`      | `developer` | View, sync, view logs        |
-| _(everyone else)_     | `viewer`    | View application status only |
-
-> **Note:** The `developer` role is explicitly denied sync and action access on the `argocd` application. Only admins can sync ArgoCD itself.
+> **Note:** You cannot log in to ArgoCD yet. Login requires GitHub OAuth, which depends on the sealed secrets created in the [next step](02-create-sealed-secrets.md). The admin password is disabled.

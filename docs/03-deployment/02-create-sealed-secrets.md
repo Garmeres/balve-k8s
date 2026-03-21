@@ -4,27 +4,23 @@ Secrets are encrypted with [Sealed Secrets](https://sealed-secrets.netlify.app/)
 
 ## Export the public cert
 
-**On the server** (Hetzner console → `master-1`):
-
-Wait for ArgoCD to sync the sealed-secrets application:
+**On your local machine**, wait for ArgoCD to sync the sealed-secrets application:
 
 ```
-kubectl get application sealed-secrets -n argocd -w
+ssh balve-master "kubectl get application sealed-secrets -n argocd -w"
 ```
 
 Once it shows `Synced`, wait for the controller pod:
 
 ```
-kubectl get pods -n sealed-secrets -w
+ssh balve-master "kubectl get pods -n sealed-secrets -w"
 ```
 
-Once it is up, print the public certificate:
+Once it is up, fetch the public certificate:
 
 ```
-kubeseal --fetch-cert --controller-namespace sealed-secrets
+ssh balve-master "KUBECONFIG=/etc/rancher/k3s/k3s.yaml kubeseal --fetch-cert --controller-name sealed-secrets --controller-namespace sealed-secrets" > ~/sealed-secrets-cert.pem
 ```
-
-Copy the output (starts with `-----BEGIN CERTIFICATE-----`) and save it on your local machine as `~/sealed-secrets-cert.pem`.
 
 ---
 
@@ -38,7 +34,7 @@ Install [kubectl](https://kubernetes.io/docs/tasks/tools/) and [kubeseal](https:
 
 ### S3
 
-In the [Hetzner Cloud Console](https://console.hetzner.cloud), go to _Object Storage_ → _Manage credentials_ → _Generate credentials_.
+In the [Hetzner Cloud Console](https://console.hetzner.cloud), go to _Security_ → _S3 credentials_ → _Generate credentials_. Note the **Access Key** and **Secret Key**.
 
 ```
 S3_KEY='<S3 Access Key>'
@@ -114,7 +110,9 @@ GITHUB_CLIENT_SECRET='<Client Secret>'
 kubectl create secret generic argocd-dex-github --namespace argocd --dry-run=client \
   --from-literal=clientID="$GITHUB_CLIENT_ID" \
   --from-literal=clientSecret="$GITHUB_CLIENT_SECRET" \
-  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  -o yaml | \
+  kubectl label --local -f - app.kubernetes.io/part-of=argocd --dry-run=client -o yaml | \
+  kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/argocd-config/templates/sealed-argocd-dex-github.yaml
 ```
 
@@ -172,4 +170,10 @@ git commit -m "Add sealed secrets"
 git push
 ```
 
-ArgoCD will sync the SealedSecret resources. The controller decrypts them into regular Kubernetes Secrets in each namespace. Applications that depend on these secrets (Strapi, Nextcloud, calendar-sync) will start recovering automatically.
+Watch until `nextcloud`, `strapi`, and `calendar-sync` are **Healthy**:
+
+```
+ssh balve-master "kubectl get applications -n argocd -w"
+```
+
+> **Note:** `argocd` will stay **Degraded** until [03-nextcloud-oidc.md](03-nextcloud-oidc.md) is completed.

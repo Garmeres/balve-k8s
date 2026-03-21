@@ -22,11 +22,12 @@ Go through the infrastructure docs in order. Some of these resources (networks, 
 1. [Networks](../02-infrastructure/01-networks.md)
 2. [Servers & placement groups](../02-infrastructure/02-servers-placement-groups.md)
 3. [Firewalls](../02-infrastructure/03-firewalls.md)
-4. [Server — master node](../02-infrastructure/04-server-master-node.md)
-5. [Server — worker node](../02-infrastructure/05-server-worker-node.md)
-6. [DNS records](../02-infrastructure/06-dns-records.md) — make sure `balve.garmeres.com` and `*.balve.garmeres.com` point to the worker's public IP
+4. [SSH keys](../02-infrastructure/04-ssh-keys.md)
+5. [Server — master node](../02-infrastructure/05-server-master-node.md)
+6. [Server — worker node](../02-infrastructure/06-server-worker-node.md)
+7. [DNS records](../02-infrastructure/07-dns-records.md) — make sure `balve.garmeres.com` and `*.balve.garmeres.com` point to the worker's public IP
 
-Skip [Object storage](../02-infrastructure/07-create-object-storage.md) — the S3 buckets already exist and contain the backups you'll restore from.
+Skip [Object storage](../02-infrastructure/08-create-object-storage.md) — the S3 buckets already exist and contain the backups you'll restore from.
 
 > **After this step:** Two servers are running, but no applications are deployed yet.
 

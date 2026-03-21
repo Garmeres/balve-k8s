@@ -9,3 +9,4 @@ In the Hetzner console, go to _Object Storage_ and create the following buckets:
 | `balve-calendar`      | Helsinki | `Public`   | `Disabled`  |
 | `balve-internal-data` | Helsinki | `Private`  | `Disabled`  |
 | `balve-shared`        | Helsinki | `Private`  | `Disabled`  |
+| `balve-config`        | Helsinki | `Private`  | `Disabled`  |
