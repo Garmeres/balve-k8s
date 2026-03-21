@@ -50,8 +50,8 @@ argo-cd:
               claimMapping:
                 groups: nc_groups
               claimModifications:
-                filterGroupClaims:
-                  groupsFilter: "^(?!admin$|everyone$).*$"
+                modifyGroupNames:
+                  prefix: "nc:"
 
     rbac:
       scopes: "[groups]"
@@ -83,7 +83,7 @@ argo-cd:
         p, role:developer, extensions, invoke, */*, deny
         g, Garmeres:admins, role:admin
         g, Garmeres:developers, role:developer
-        g, Garmeres board, role:developer
+        g, nc:Garmeres board, role:developer
 
     params:
       server.insecure: true
