@@ -1,6 +1,6 @@
 # ArgoCD
 
-ArgoCD does not manage its own installation. To update, change `values.yaml` and re-run the install commands in the [deployment guide](../docs/03-deployment/01-deploy-argocd.md).
+ArgoCD does not manage its own installation. To update, change `values.yaml` and re-run the install commands in the [deployment guide](../docs/03-balve-deployment/01-deploy-argocd.md).
 
 ## RBAC
 

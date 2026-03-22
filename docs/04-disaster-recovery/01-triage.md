@@ -38,10 +38,10 @@ nslookup balve.garmeres.com
 
 Compare the IP in the response with the worker's public IP from Hetzner.
 
-| What you see    | What to do                                                                                                                                                              |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| IPs match       | Continue to step 3                                                                                                                                                      |
-| IPs don't match | Update the DNS records at Domeneshop — see [DNS records](../02-infrastructure/07-dns-records.md). Both `balve.garmeres.com` and `*.balve.garmeres.com` need the new IP. |
+| What you see    | What to do                                                                                                                                                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IPs match       | Continue to step 3                                                                                                                                                            |
+| IPs don't match | Update the DNS records at Domeneshop — see [DNS records](../02-balve-infrastructure/07-dns-records.md). Both `balve.garmeres.com` and `*.balve.garmeres.com` need the new IP. |
 
 ---
 

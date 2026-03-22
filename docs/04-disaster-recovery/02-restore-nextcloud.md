@@ -114,7 +114,7 @@ ssh balve-master "kubectl delete job restore-nextcloud -n nextcloud"
 
 ## Step 8: Verify ArgoCD login
 
-The restore job automatically re-registers the ArgoCD OAuth 2.0 client (if the `argocd-oauth` sealed secret exists in the nextcloud namespace — see [03-nextcloud-oidc.md](../03-deployment/03-nextcloud-oidc.md)).
+The restore job automatically re-registers the ArgoCD OAuth 2.0 client (if the `argocd-oauth` sealed secret exists in the nextcloud namespace — see [03-nextcloud-oidc.md](../03-balve-deployment/03-nextcloud-oidc.md)).
 
 Restart Dex so it reconnects to the restored Nextcloud:
 

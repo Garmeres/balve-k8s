@@ -32,7 +32,7 @@ If the messages mention something else, this is not a signing key problem — go
 
 The sealed-secrets controller generated a new signing key when it was redeployed. You need to re-encrypt every secret with the new key.
 
-Follow the full [Sealed Secrets deployment guide](../03-deployment/02-create-sealed-secrets.md) from the beginning. It walks you through each secret step by step:
+Follow the full [Sealed Secrets deployment guide](../03-balve-deployment/02-create-sealed-secrets.md) from the beginning. It walks you through each secret step by step:
 
 1. **Export the new public cert** from the cluster (uploaded to `balve-config` bucket, downloaded from Hetzner console)
 2. **Regenerate S3 credentials** at Hetzner (Object Storage → Manage credentials)

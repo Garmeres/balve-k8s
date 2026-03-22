@@ -2,7 +2,7 @@
 
 Nextcloud 33 with MariaDB, Redis, local disk primary storage, and self-hosted Collabora Online for document editing.
 
-See [08-create-object-storage.md](../../docs/02-infrastructure/08-create-object-storage.md) for prerequisite secrets and bucket setup.
+See [08-create-object-storage.md](../../docs/02-balve-infrastructure/08-create-object-storage.md) for prerequisite secrets and bucket setup.
 
 ## Installed apps
 

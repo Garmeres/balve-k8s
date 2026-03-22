@@ -15,7 +15,7 @@ Kubernetes infrastructure for [Garmeres](https://garmeres.com). Runs on two Hetz
 
 ## Need to grant or revoke access?
 
-If you're a technical manager and need to give someone access to Balve (e.g. a consultant or new team member), or remove access from someone, see the [access management guide](docs/01-access-management/).
+If you're a technical manager and need to give someone access to Balve (e.g. a consultant or new board member), or remove access from someone, see the [access management guide](docs/01-access-management/01-access-management.md).
 
 ## Architecture
 
@@ -30,28 +30,38 @@ If you're a technical manager and need to give someone access to Balve (e.g. a c
 
 ### [1. Access management](docs/01-access-management/)
 
-1. [Overview](docs/01-access-management/01-overview.md)
-2. [Handover](docs/01-access-management/02-handover.md)
-3. [Grant access](docs/01-access-management/03-grant-access.md)
-4. [Revoke access](docs/01-access-management/04-revoke-access.md)
-5. [Audit access](docs/01-access-management/05-audit-access.md)
+1. [Access management](docs/01-access-management/01-access-management.md)
+2. [Rotate SSH keys](docs/01-access-management/02-rotate-ssh-keys.md)
+3. [New board member](docs/01-access-management/03-new-board-member.md)
+4. [Outgoing board member](docs/01-access-management/04-outgoing-board-member.md)
+5. [New external collaborator](docs/01-access-management/05-new-external-collaborator.md)
+6. [Outgoing external collaborator](docs/01-access-management/06-outgoing-external-collaborator.md)
+7. [New technical manager](docs/01-access-management/07-new-technical-manager.md)
+8. [Outgoing technical manager](docs/01-access-management/08-outgoing-technical-manager.md)
+9. [Manage Balve users](docs/01-access-management/09-manage-balve-users.md)
+10. [Manage email users](docs/01-access-management/10-manage-email-users.md)
+11. [Manage Strapi users](docs/01-access-management/11-manage-strapi-users.md)
+12. [Manage GitHub users](docs/01-access-management/12-manage-github-users.md)
+13. [Manage Hetzner users](docs/01-access-management/13-manage-hetzner-users.md)
+14. [Access structure](docs/01-access-management/14-access-structure.md)
+15. [Audit access](docs/01-access-management/15-audit-access.md)
 
-### [2. Infrastructure](docs/02-infrastructure/)
+### [2. Balve infrastructure](docs/02-balve-infrastructure/)
 
-1. [Networks](docs/02-infrastructure/01-networks.md)
-2. [Placement groups](docs/02-infrastructure/02-servers-placement-groups.md)
-3. [Firewalls](docs/02-infrastructure/03-firewalls.md)
-4. [SSH keys](docs/02-infrastructure/04-ssh-keys.md)
-5. [Master node](docs/02-infrastructure/05-server-master-node.md)
-6. [Worker node](docs/02-infrastructure/06-server-worker-node.md)
-7. [DNS records](docs/02-infrastructure/07-dns-records.md)
-8. [Object storage](docs/02-infrastructure/08-create-object-storage.md)
+1. [Networks](docs/02-balve-infrastructure/01-networks.md)
+2. [Placement groups](docs/02-balve-infrastructure/02-servers-placement-groups.md)
+3. [Firewalls](docs/02-balve-infrastructure/03-firewalls.md)
+4. [SSH keys](docs/02-balve-infrastructure/04-ssh-keys.md)
+5. [Master node](docs/02-balve-infrastructure/05-server-master-node.md)
+6. [Worker node](docs/02-balve-infrastructure/06-server-worker-node.md)
+7. [DNS records](docs/02-balve-infrastructure/07-dns-records.md)
+8. [Object storage](docs/02-balve-infrastructure/08-create-object-storage.md)
 
-### [3. Deployment](docs/03-deployment/)
+### [3. Balve deployment](docs/03-balve-deployment/)
 
-1. [Deploy ArgoCD](docs/03-deployment/01-deploy-argocd.md)
-2. [Sealed secrets](docs/03-deployment/02-create-sealed-secrets.md)
-3. [Nextcloud OIDC for ArgoCD](docs/03-deployment/03-nextcloud-oidc.md)
+1. [Deploy ArgoCD](docs/03-balve-deployment/01-deploy-argocd.md)
+2. [Sealed secrets](docs/03-balve-deployment/02-create-sealed-secrets.md)
+3. [Nextcloud OIDC for ArgoCD](docs/03-balve-deployment/03-nextcloud-oidc.md)
 
 ### [4. Disaster recovery](docs/04-disaster-recovery/)
 
