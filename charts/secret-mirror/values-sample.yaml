@@ -1,0 +1,8 @@
+mirrors:
+  - source:
+      namespace: dex
+      secretName: dex-argocd-client-secret
+    startingSyncWave: -10
+    target:
+      namespace: argocd
+      secretName: dex-client-secret

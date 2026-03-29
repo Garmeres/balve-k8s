@@ -1,0 +1,76 @@
+{{- range .Values.mirrors }}
+{{- $sourceNamespace := (.source).namespace | required "mirrors[].source.namespace is required" }}
+{{- $sourceSecret := (.source).secretName | required "mirrors[].source.secretName is required" }}
+{{- $targetNamespace := (.target).namespace | required "mirrors[].target.namespace is required" }}
+{{- $targetSecret := (.target).secretName | required "mirrors[].target.secretName is required" }}
+{{- $name := printf "secret-mirror-%s-%s" $sourceNamespace $targetNamespace }}
+{{- $startingSyncWave := .startingSyncWave | default -10 }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ add 0 $startingSyncWave | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}-source
+  namespace: {{ $sourceNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ add 0 $startingSyncWave | quote }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: [{{ $sourceSecret | quote }}]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}-target
+  namespace: {{ $targetNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ add 0 $startingSyncWave | quote }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: [{{ $targetSecret | quote }}]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}-source-role
+  namespace: {{ $sourceNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ add 1 $startingSyncWave | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ $name }}-source
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}-target
+  namespace: {{ $targetNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ add 1 $startingSyncWave | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}
+    namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ $name }}-target
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

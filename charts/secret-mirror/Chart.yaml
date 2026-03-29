@@ -1,0 +1,5 @@
+apiVersion: v2
+name: secret-mirror
+description: Copy a secret from one namespace to another
+type: application
+version: 0.1.0

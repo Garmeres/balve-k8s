@@ -232,3 +232,13 @@ nextcloud:
         timeoutSeconds: 30
         successThreshold: 1
         failureThreshold: 2
+
+secret-mirror:
+  mirrors:
+    - source:
+        namespace: nextcloud
+        secretName: nextcloud-dex-oidc
+      target:
+        namespace: dex
+        secretName: dex-nextcloud-connector
+      startingSyncWave: 4

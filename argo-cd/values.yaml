@@ -12,7 +12,7 @@ argo-cd:
       tls: true
 
   dex:
-    enabled: true
+    enabled: false
 
   configs:
     cm:
@@ -22,36 +22,16 @@ argo-cd:
       ui.bannercontent: "This dashboard shows the status of all services on the Balve server. Green means everything is running normally."
       ui.bannerposition: top
       ui.bannerpermanent: "true"
-      dex.config: |
-        connectors:
-          - type: github
-            id: github
-            name: GitHub
-            config:
-              clientID: $argocd-dex-github:clientID
-              clientSecret: $argocd-dex-github:clientSecret
-              orgs:
-                - name: Garmeres
-              loadAllGroups: true
-          - type: oidc
-            id: nextcloud
-            name: Nextcloud
-            config:
-              issuer: https://balve.garmeres.com
-              clientID: $argocd-dex-nextcloud:clientID
-              clientSecret: $argocd-dex-nextcloud:clientSecret
-              scopes:
-                - openid
-                - profile
-                - email
-                - groups
-              getUserInfo: true
-              insecureEnableGroups: true
-              claimMapping:
-                groups: nc_groups
-              claimModifications:
-                modifyGroupNames:
-                  prefix: "nc:"
+      oidc.config: |
+        name: Dex
+        issuer: https://dex.balve.garmeres.com
+        clientID: argocd
+        clientSecret: $dex-argocd-client-secret:client-secret
+        requestedScopes:
+          - openid
+          - profile
+          - email
+          - groups
 
     rbac:
       scopes: "[groups]"
@@ -81,9 +61,9 @@ argo-cd:
         p, role:developer, accounts, *, *, deny
         p, role:developer, gpgkeys, *, *, deny
         p, role:developer, extensions, invoke, */*, deny
-        g, Garmeres:admins, role:admin
-        g, Garmeres:developers, role:developer
-        g, nc:Garmeres board, role:developer
+        g, github:Garmeres:admins, role:admin
+        g, github:Garmeres:developers, role:developer
+        g, nextcloud:Garmeres board, role:developer
 
     params:
       server.insecure: true

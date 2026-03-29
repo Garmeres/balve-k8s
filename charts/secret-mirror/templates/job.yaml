@@ -1,0 +1,55 @@
+{{- range .Values.mirrors }}
+{{- $sourceNamespace := (.source).namespace | required "mirrors[].source.namespace is required" }}
+{{- $sourceSecret := (.source).secretName | required "mirrors[].source.secretName is required" }}
+{{- $targetNamespace := (.target).namespace | required "mirrors[].target.namespace is required" }}
+{{- $targetSecret := (.target).secretName | required "mirrors[].target.secretName is required" }}
+{{- $name := printf "secret-mirror-%s-%s" $sourceNamespace $targetNamespace }}
+{{- $startingSyncWave := .startingSyncWave | default -10 }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ add 2 $startingSyncWave | quote }}
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 15
+  activeDeadlineSeconds: 7200
+  template:
+    metadata:
+      labels:
+        app: secret-mirror
+    spec:
+      serviceAccountName: {{ $name }}
+      restartPolicy: OnFailure
+      containers:
+        - name: mirror
+          image: bitnami/kubectl:1.32
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              kubectl get secret "$SOURCE_SECRET" -n "$SOURCE_NS" -o json \
+                | jq --arg name "$TARGET_SECRET" --arg ns "$TARGET_NS" \
+                  '{apiVersion: "v1", kind: "Secret", metadata: {name: $name, namespace: $ns}, data}' \
+                | kubectl apply -f - > /dev/null
+              echo "Secret mirrored."
+          env:
+            - name: SOURCE_NS
+              value: {{ $sourceNamespace | quote }}
+            - name: SOURCE_SECRET
+              value: {{ $sourceSecret | quote }}
+            - name: TARGET_NS
+              value: {{ $targetNamespace | quote }}
+            - name: TARGET_SECRET
+              value: {{ $targetSecret | quote }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+{{- end }}

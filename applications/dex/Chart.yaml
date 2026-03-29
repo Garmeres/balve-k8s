@@ -1,12 +1,12 @@
 apiVersion: v2
-name: nextcloud
-description: Nextcloud file sharing server
+name: dex
+description: Standalone Dex OIDC identity provider
 type: application
 version: 0.1.0
 dependencies:
-  - name: nextcloud
-    version: 9.0.3
-    repository: https://nextcloud.github.io/helm/
+  - name: dex
+    version: 0.24.0
+    repository: https://charts.dexidp.io
   - name: secret-mirror
     version: 0.1.0
     repository: file://../../charts/secret-mirror

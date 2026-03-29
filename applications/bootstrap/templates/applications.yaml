@@ -1,0 +1,40 @@
+{{- range .Values.applications }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .name }}
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .syncWave | default "0" | quote }}
+spec:
+  project: default
+  source:
+    repoURL: {{ $.Values.git.repoURL }}
+    targetRevision: {{ $.Values.git.revision }}
+    path: {{ .path | default (printf "applications/%s" .name) }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .namespace | default .name }}
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates
+  syncPolicy:
+    {{- if ne (.autoSync | toString) "false" }}
+    automated:
+      prune: true
+      selfHeal: true
+    {{- end }}
+    retry:
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 10m
+      limit: 10
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+{{- end }}

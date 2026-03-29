@@ -1,0 +1,19 @@
+git:
+  repoURL: https://github.com/garmeres/balve-k8s.git
+  revision: main
+
+applications:
+  - name: sealed-secrets
+    syncWave: "-2"
+  - name: cert-manager
+    syncWave: "-2"
+  - name: dex
+    syncWave: "-1"
+  - name: argocd
+    path: argo-cd
+    namespace: argocd
+    autoSync: false
+  - name: nextcloud
+  - name: strapi
+  - name: calendar-sync
+  - name: observability

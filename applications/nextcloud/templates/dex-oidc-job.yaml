@@ -1,0 +1,121 @@
+{{- $secretName := "nextcloud-dex-oidc" }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $secretName }}-gen
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $secretName }}-gen
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: [{{ $secretName | quote }}]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $secretName }}-gen
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+subjects:
+  - kind: ServiceAccount
+    name: {{ $secretName }}-gen
+roleRef:
+  kind: Role
+  name: {{ $secretName }}-gen
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $secretName }}-gen
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 15
+  activeDeadlineSeconds: 7200
+  template:
+    metadata:
+      labels:
+        app: {{ $secretName }}-gen
+    spec:
+      serviceAccountName: {{ $secretName }}-gen
+      restartPolicy: OnFailure
+      containers:
+        - name: register
+          image: alpine:3.20
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              apk add --no-cache mariadb-client kubectl
+
+              # Check if the secret already exists
+              if kubectl get secret "$SECRET_NAME" > /dev/null 2>&1; then
+                echo "Secret $SECRET_NAME already exists, skipping."
+                exit 0
+              fi
+
+              # Check if Dex OIDC client already exists in the database
+              EXISTING_ID=$(mysql -h "$DB_HOST" -u nextcloud -p"$DB_PASS" nextcloud -N \
+                -e "SELECT client_identifier FROM oc_oidc_clients WHERE name = 'Dex';" 2>/dev/null || true)
+
+              if [ -n "$EXISTING_ID" ]; then
+                echo "Dex OIDC client already registered, extracting credentials..."
+                CLIENT_ID="$EXISTING_ID"
+                CLIENT_SECRET=$(mysql -h "$DB_HOST" -u nextcloud -p"$DB_PASS" nextcloud -N \
+                  -e "SELECT secret FROM oc_oidc_clients WHERE name = 'Dex';")
+              else
+                echo "Registering new Dex OIDC client..."
+                CLIENT_ID=$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')
+                CLIENT_SECRET=$(head -c 32 /dev/urandom | base64 | tr -d '\n')
+
+                mysql -h "$DB_HOST" -u nextcloud -p"$DB_PASS" nextcloud \
+                  -e "INSERT INTO oc_oidc_clients (name, client_identifier, secret, signing_alg, type, flow_type, issued_at) VALUES ('Dex', '$CLIENT_ID', '$CLIENT_SECRET', 'RS256', 'confidential', 'code', UNIX_TIMESTAMP());"
+
+                OIDC_CLIENT_DB_ID=$(mysql -h "$DB_HOST" -u nextcloud -p"$DB_PASS" nextcloud -N \
+                  -e "SELECT id FROM oc_oidc_clients WHERE name = 'Dex';")
+
+                mysql -h "$DB_HOST" -u nextcloud -p"$DB_PASS" nextcloud \
+                  -e "INSERT INTO oc_oidc_redirect_uris (client_id, redirect_uri) VALUES ($OIDC_CLIENT_DB_ID, '$REDIRECT_URI');"
+
+                echo "Dex OIDC client registered."
+              fi
+
+              kubectl create secret generic "$SECRET_NAME" \
+                --from-literal=clientID="$CLIENT_ID" \
+                --from-literal=clientSecret="$CLIENT_SECRET"
+
+              echo "Secret $SECRET_NAME created."
+          env:
+            - name: SECRET_NAME
+              value: {{ $secretName | quote }}
+            - name: DB_HOST
+              value: {{ printf "%s-mariadb" .Release.Name | quote }}
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-mariadb" .Release.Name | quote }}
+                  key: mariadb-password
+            - name: REDIRECT_URI
+              value: "https://dex.balve.garmeres.com/callback"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
