@@ -1,0 +1,5 @@
+apiVersion: v2
+name: medama
+description: Privacy-focused, cookie-free website analytics
+type: application
+version: 0.1.0
