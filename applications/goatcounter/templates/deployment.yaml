@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: medama
+  name: goatcounter
 spec:
   replicas: 1
   revisionHistoryLimit: 0
@@ -9,21 +9,22 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: medama
+      app: goatcounter
   template:
     metadata:
       labels:
-        app: medama
+        app: goatcounter
     spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65534
-        runAsGroup: 65534
-        fsGroup: 65534
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
-        - name: medama
+        - name: goatcounter
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          args: ["serve", "-automigrate", "-listen", ":8080"]
           ports:
             - containerPort: 8080
               name: http
@@ -32,13 +33,6 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
-          env:
-            - name: HOME
-              value: /tmp
-            - name: APP_DATABASE_HOST
-              value: /data/me_meta.db
-            - name: ANALYTICS_DATABASE_HOST
-              value: /data/me_analytics.db
           startupProbe:
             httpGet:
               path: /
@@ -59,7 +53,7 @@ spec:
             failureThreshold: 3
           volumeMounts:
             - name: data
-              mountPath: /data
+              mountPath: /home/goatcounter/goatcounter-data
             - name: tmp
               mountPath: /tmp
           resources:
@@ -67,6 +61,6 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: medama-data
+            claimName: goatcounter-data
         - name: tmp
           emptyDir: {}
