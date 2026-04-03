@@ -2,7 +2,7 @@ image:
   repository: ghcr.io/garmeres/garmeres-frontend
   tag: latest
 
-host: garmeres.com
+host: garmeres-frontend.balve.garmeres.com
 ingressClassName: traefik
 
 resources:
