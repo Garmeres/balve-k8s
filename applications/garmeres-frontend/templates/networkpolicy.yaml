@@ -42,7 +42,7 @@ spec:
       ports:
         - port: 1337
           protocol: TCP
-    # HTTPS (next/image optimization fetches remote images)
+    # HTTPS (calendar data from external S3)
     - ports:
         - port: 443
           protocol: TCP
