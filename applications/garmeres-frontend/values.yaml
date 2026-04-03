@@ -5,7 +5,7 @@ image:
 host: garmeres-frontend.balve.garmeres.com
 ingressClassName: traefik
 
-strapiUrl: http://strapi.strapi.svc.cluster.local:1337
+strapiUrl: https://strapi.balve.garmeres.com
 calendarUrl: https://balve-calendar.hel1.your-objectstorage.com
 gaId: G-D4DKCE7RH0
 appSecret: garmeres-frontend-secrets
