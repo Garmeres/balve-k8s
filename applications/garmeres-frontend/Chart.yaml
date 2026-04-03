@@ -1,0 +1,5 @@
+apiVersion: v2
+name: garmeres-frontend
+description: Next.js frontend for garmeres.com
+type: application
+version: 0.1.0

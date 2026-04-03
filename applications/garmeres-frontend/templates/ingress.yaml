@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: garmeres-frontend
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.middlewares: garmeres-frontend-garmeres-headers@kubernetescrd
+spec:
+  ingressClassName: {{ .Values.ingressClassName }}
+  rules:
+    - host: {{ .Values.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: garmeres-frontend
+                port:
+                  number: 3000
+  tls:
+    - secretName: garmeres-frontend-tls
+      hosts:
+        - {{ .Values.host }}
