@@ -5,10 +5,15 @@ image:
 host: garmeres-frontend.balve.garmeres.com
 ingressClassName: traefik
 
+strapiUrl: http://strapi.strapi.svc.cluster.local:1337
+calendarUrl: https://balve-calendar.hel1.your-objectstorage.com
+gaId: G-D4DKCE7RH0
+appSecret: garmeres-frontend-secrets
+
 resources:
   requests:
-    memory: 128Mi
-    cpu: 50m
-  limits:
     memory: 256Mi
-    cpu: 200m
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m

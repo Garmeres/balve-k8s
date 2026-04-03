@@ -28,13 +28,24 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: STRAPI_URL
-              value: "http://strapi.strapi.svc.cluster.local:1337"
+              value: {{ .Values.strapiUrl | quote }}
+            - name: STRAPI_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.appSecret }}
+                  key: STRAPI_API_TOKEN
+            - name: CALENDAR_URL
+              value: {{ .Values.calendarUrl | quote }}
+            - name: SITE_URL
+              value: "https://{{ .Values.host }}"
+            - name: NEXT_PUBLIC_GA_ID
+              value: {{ .Values.gaId | quote }}
           startupProbe:
             httpGet:
               path: /
               port: 3000
-            periodSeconds: 5
-            failureThreshold: 12
+            periodSeconds: 10
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /
@@ -52,7 +63,6 @@ spec:
           securityContext:
             runAsNonRoot: true
             runAsUser: 1001
-            readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
             capabilities:
               drop:
