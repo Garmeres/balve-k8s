@@ -2,7 +2,7 @@ image:
   repository: ghcr.io/garmeres/garmeres-frontend
   tag: latest
 
-host: garmeres-frontend.balve.garmeres.com
+host: garmeres.com
 ingressClassName: traefik
 
 strapiUrl: https://strapi.balve.garmeres.com
