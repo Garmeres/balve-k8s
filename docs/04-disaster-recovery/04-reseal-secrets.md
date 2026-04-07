@@ -6,7 +6,7 @@ All credentials are recoverable. This procedure takes about 30 minutes and requi
 
 - Server access (Hetzner Cloud)
 - A local machine with [kubectl](https://kubernetes.io/docs/tasks/tools/) and [kubeseal](https://github.com/bitnami-labs/sealed-secrets#kubeseal) installed
-- Access to Hetzner Cloud Console, Domeneshop, GitHub, and (if still in use) AWS
+- Access to Hetzner Cloud Console, Domeneshop, and GitHub
 
 ---
 
@@ -39,8 +39,7 @@ Follow the full [Sealed Secrets deployment guide](../03-balve-deployment/02-crea
 3. **Reset the SMTP password** at Domeneshop (garmeres10 email account)
 4. **Regenerate the GitHub OAuth secret** for ArgoCD
 5. **Regenerate random secrets** for Strapi (app keys, JWT) and Nextcloud (MariaDB, Redis passwords)
-6. **Regenerate AWS credentials** for calendar-sync (if still in use)
-7. **Commit and push** — ArgoCD syncs the new sealed secrets automatically
+6. **Commit and push** — ArgoCD syncs the new sealed secrets automatically
 
 > **Note:** User accounts, files, and data are not affected by this process. No one's login will change. Some services will restart automatically — this is normal.
 

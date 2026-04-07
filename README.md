@@ -8,7 +8,7 @@ Kubernetes infrastructure for [Garmeres](https://garmeres.com). Runs on two Hetz
 | --------------------------------------------- | -------------------------------------------------------------------- |
 | [strapi](applications/strapi)                 | Headless CMS for garmeres.com (Strapi 5, SQLite)                     |
 | [nextcloud](applications/nextcloud)           | File sharing, calendar, collaboration (MariaDB, Collabora)           |
-| [calendar-sync](applications/calendar-sync)   | CronJob that syncs calendar as JSON to Hetzner S3 and AWS CloudFront |
+| [calendar-sync](applications/calendar-sync)   | CronJob that syncs calendar as JSON to Hetzner S3                    |
 | [cert-manager](applications/cert-manager)     | TLS certificates via Let's Encrypt                                   |
 | [sealed-secrets](applications/sealed-secrets) | Encrypted secrets stored in git                                      |
 | [argocd-config](applications/argocd-config)   | Sealed secrets for ArgoCD Dex OAuth                                  |
