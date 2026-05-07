@@ -63,25 +63,25 @@ kubectl create secret generic calendar-sync-s3 --namespace calendar-sync --dry-r
 
 ### DKIM
 
-The Maddy mail relay signs outgoing emails with DKIM. The ed25519 private key is stored as a sealed secret.
+The Maddy mail relay signs outgoing emails with DKIM. The RSA-2048 private key is stored as a sealed secret.
 
 Generate a new keypair:
 
 ```
-openssl genpkey -algorithm ed25519 -out /tmp/maddy-dkim.key
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /tmp/maddy-dkim.key
 ```
 
 Extract the base64 public key (needed for the DNS TXT record):
 
 ```
-openssl pkey -in /tmp/maddy-dkim.key -pubout -outform der | base64
+openssl rsa -in /tmp/maddy-dkim.key -pubout -outform PEM | grep -v '^-' | tr -d '\n'
 ```
 
 Add a TXT record in the [Domeneshop control panel](https://domene.shop/login) under _Mine domener_ → _garmeres.com_ → _DNS_:
 
-| Host                 | Type | Value                                                  |
-| -------------------- | ---- | ------------------------------------------------------ |
-| `default._domainkey` | TXT  | `v=DKIM1; k=ed25519; p=<base64 public key from above>` |
+| Host                 | Type | Value                                              |
+| -------------------- | ---- | -------------------------------------------------- |
+| `default._domainkey` | TXT  | `v=DKIM1; k=rsa; p=<base64 public key from above>` |
 
 Seal the private key:
 
