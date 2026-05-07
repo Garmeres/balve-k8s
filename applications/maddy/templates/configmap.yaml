@@ -54,7 +54,6 @@ data:
             default_destination {
                 modify {
                     dkim {
-                        debug yes
                         domains $(primary_domain)
                         selector default
                         key_path /data/dkim_keys/{domain}_{selector}.key
