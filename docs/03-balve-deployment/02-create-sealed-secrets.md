@@ -138,6 +138,9 @@ These use randomly generated values — no credentials to gather.
 kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=client \
   --from-literal=username="admin" \
   --from-literal=password="$(openssl rand -base64 16)" \
+  --from-literal=smtp-host="maddy.maddy.svc.cluster.local" \
+  --from-literal=smtp-username="" \
+  --from-literal=smtp-password="" \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
   > applications/nextcloud/templates/sealed-nextcloud-admin.yaml
 
