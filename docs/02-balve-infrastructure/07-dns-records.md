@@ -13,10 +13,12 @@ Only the worker node has ports 80/443 open (via `firewall-2`).
 
 ## Email (SPF)
 
-For the Maddy mail relay to pass SPF checks, the domain's SPF record must include the worker node. Verify that the existing SPF TXT record on `@` contains:
+The Maddy mail relay sends email from `balve.garmeres.com`. Two DNS changes are needed for SPF to pass:
 
-```
-include:balve.garmeres.com
-```
+1. **Edit** the existing TXT record on `@` and add `include:balve.garmeres.com` to the SPF value (before the `~all` or `-all` at the end).
 
-If it doesn't, add it. For example: `v=spf1 ... include:balve.garmeres.com ~all`
+2. **Create** a new TXT record:
+
+| Host    | Type | Value           |
+| ------- | ---- | --------------- |
+| `balve` | TXT  | `v=spf1 a -all` |
