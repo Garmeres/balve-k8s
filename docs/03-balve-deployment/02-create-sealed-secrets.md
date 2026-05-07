@@ -61,30 +61,44 @@ kubectl create secret generic calendar-sync-s3 --namespace calendar-sync --dry-r
   > applications/calendar-sync/templates/sealed-calendar-sync-s3.yaml
 ```
 
-### SMTP
+### DKIM
 
-In the [Domeneshop control panel](https://domene.shop/login), log in with **admin@garmeres.com**. Go to _Mine domener_ → _garmeres.com_ → _Epost_, click **Balve** (`garmeres10`), and reset the password.
+The Maddy mail relay signs outgoing emails with DKIM. The ed25519 private key is stored as a sealed secret.
 
-```
-SMTP_PASS='<new password>'
-```
+Generate a new keypair:
 
 ```
-kubectl create secret generic strapi-smtp --namespace strapi --dry-run=client \
-  --from-literal=SMTP_USERNAME="garmeres10" \
-  --from-literal=SMTP_PASSWORD="$SMTP_PASS" \
+openssl genpkey -algorithm ed25519 -out /tmp/maddy-dkim.key
+```
+
+Extract the base64 public key (needed for the DNS TXT record):
+
+```
+openssl pkey -in /tmp/maddy-dkim.key -pubout -outform der | base64
+```
+
+Add a TXT record in the [Domeneshop control panel](https://domene.shop/login) under _Mine domener_ → _garmeres.com_ → _DNS_:
+
+| Host                 | Type | Value                                                  |
+| -------------------- | ---- | ------------------------------------------------------ |
+| `default._domainkey` | TXT  | `v=DKIM1; k=ed25519; p=<base64 public key from above>` |
+
+Seal the private key:
+
+```
+kubectl create secret generic maddy-dkim --namespace maddy --dry-run=client \
+  --from-file=garmeres.com_default.key=/tmp/maddy-dkim.key \
   -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
-  > applications/strapi/templates/sealed-strapi-smtp.yaml
-
-kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=client \
-  --from-literal=username="admin" \
-  --from-literal=password="$(openssl rand -base64 16)" \
-  --from-literal=smtp-host="smtp.domeneshop.no" \
-  --from-literal=smtp-username="garmeres10" \
-  --from-literal=smtp-password="$SMTP_PASS" \
-  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
-  > applications/nextcloud/templates/sealed-nextcloud-admin.yaml
+  > applications/maddy/templates/sealed-maddy-dkim.yaml
 ```
+
+Clean up:
+
+```
+rm /tmp/maddy-dkim.key
+```
+
+> **Note:** If you generate a new key (e.g. after DR), you must also update the `default._domainkey` DNS TXT record with the new public key.
 
 ### GitHub OAuth
 
@@ -121,6 +135,12 @@ kubectl create secret generic argocd-dex-github --namespace argocd --dry-run=cli
 These use randomly generated values — no credentials to gather.
 
 ```
+kubectl create secret generic nextcloud-admin --namespace nextcloud --dry-run=client \
+  --from-literal=username="admin" \
+  --from-literal=password="$(openssl rand -base64 16)" \
+  -o yaml | kubeseal --cert ~/sealed-secrets-cert.pem --format yaml \
+  > applications/nextcloud/templates/sealed-nextcloud-admin.yaml
+
 kubectl create secret generic strapi-secrets --namespace strapi --dry-run=client \
   --from-literal=APP_KEYS="$(openssl rand -base64 16),$(openssl rand -base64 16)" \
   --from-literal=API_TOKEN_SALT="$(openssl rand -base64 16)" \

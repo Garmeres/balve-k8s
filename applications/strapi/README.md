@@ -2,7 +2,7 @@
 
 Self-hosted Strapi CMS with SQLite on a PersistentVolumeClaim and S3 media storage.
 
-Email is sent via SMTP (Domeneshop) using the `@strapi/provider-email-nodemailer` plugin. From address: `balve@garmeres.com`, reply-to: `admin@garmeres.com`.
+Email is sent via the Maddy mail relay (`maddy.maddy.svc.cluster.local`) using the `@strapi/provider-email-nodemailer` plugin. From address: `balve@garmeres.com`, reply-to: `admin@garmeres.com`.
 
 See [08-create-object-storage.md](../../docs/02-balve-infrastructure/08-create-object-storage.md) for prerequisite secrets and bucket setup.
 

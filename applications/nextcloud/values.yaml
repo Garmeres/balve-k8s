@@ -22,8 +22,6 @@ nextcloud:
       secretName: nextcloud-admin
       usernameKey: username
       passwordKey: password
-      smtpUsernameKey: smtp-username
-      smtpPasswordKey: smtp-password
 
     # Primary storage: local disk (PVC)
     # S3 primary objectstore was removed 2026-03-20 due to Hetzner S3
@@ -36,10 +34,10 @@ nextcloud:
       fromAddress: balve
       domain: garmeres.com
       smtp:
-        host: smtp.domeneshop.no
-        secure: tls
+        host: maddy.maddy.svc.cluster.local
+        secure: ""
         port: 587
-        authtype: LOGIN
+        authtype: ""
 
     phpConfigs:
       session-nolock.ini: |

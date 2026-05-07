@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maddy
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: maddy
+  template:
+    metadata:
+      labels:
+        app: maddy
+    spec:
+      initContainers:
+        - name: copy-config
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          command:
+            - sh
+            - -c
+            - |
+              cp /config/maddy.conf /data/maddy.conf
+              mkdir -p /data/dkim_keys
+              cp /dkim/garmeres.com_default.key /data/dkim_keys/garmeres.com_default.key
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: dkim
+              mountPath: /dkim
+            - name: data
+              mountPath: /data
+      containers:
+        - name: maddy
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          ports:
+            - containerPort: 587
+              name: submission
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: maddy-config
+        - name: dkim
+          secret:
+            secretName: maddy-dkim
+        - name: data
+          persistentVolumeClaim:
+            claimName: maddy-data

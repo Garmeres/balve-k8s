@@ -9,9 +9,8 @@ frameAncestors: https://balve.garmeres.com
 appSecret: strapi-secrets
 
 smtp:
-  host: smtp.domeneshop.no
+  host: maddy.maddy.svc.cluster.local
   port: 587
-  secretRef: strapi-smtp
 
 s3:
   endpoint: https://hel1.your-objectstorage.com

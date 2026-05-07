@@ -10,3 +10,13 @@ Only the worker node has ports 80/443 open (via `firewall-2`).
 | --------- | ---- | ------------------ |
 | `balve`   | A    | _worker public IP_ |
 | `*.balve` | A    | _worker public IP_ |
+
+## Email (SPF)
+
+For the Maddy mail relay to pass SPF checks, the domain's SPF record must include the worker node. Verify that the existing SPF TXT record on `@` contains:
+
+```
+include:balve.garmeres.com
+```
+
+If it doesn't, add it. For example: `v=spf1 ... include:balve.garmeres.com ~all`

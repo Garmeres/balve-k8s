@@ -18,6 +18,16 @@ In the Hetzner console, go to _Servers_ -> _Add Server_, and use the following v
 | Cloud config     | See [Cloud config](#cloud-config).                                                                                  |
 | Server name      | `worker-1`                                                                                                          |
 
+## Reverse DNS
+
+After the server is created, configure reverse DNS (PTR) for outbound email delivery:
+
+1. Go to _Servers_ → `worker-1` → _Networking_
+2. Scroll down to _Floating IPs_
+3. Click on the reverse DNS value next to the floating IP and change it to `balve.garmeres.com`
+
+This ensures the PTR record matches the EHLO hostname used by the Maddy mail relay, which is required for email deliverability.
+
 ## Cloud config
 
 Copy the entire [Cloud init script](#cloud-init-script), and paste it into the **Cloud Config** field of the Hetzner Server.

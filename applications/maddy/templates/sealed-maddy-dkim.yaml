@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: maddy-dkim
+  namespace: maddy
+spec:
+  encryptedData:
+    garmeres.com_default.key: AgAms6uVP+rfgPSaF3tZqAEWO8x5ylO1dvb78ejZ2aO3uF/odj5Y1j8YRUFNDdm84CZ/T4A4wilw2mutZ1QJNXg0FktP8ySLUicidmAp0txknsOm1citI9XDq3tM042e8OAxTH5+qTxo8wMR+6UADmlxvteKz1gKiqeuCsTfsyI9yPr3I8XU8VofWAY05uhMkrXboUSdKujxKgyJMn8e2NhvcjW1hL3F6J6hSv/qmOZRE559YU4QHZjjva4Ida3EtmgsYDSAhdjiqzmRGu+slI5JhOZLP8V/506k9HQ7MCYpVvPntttFjd5RfUEwWUzs0jy7br5wP8xiCnETffdKj7cBgsDPM4NnsiGU1nltWwsiA3jgoRrpHf1ol4vZ5+Pb5zWgUVcclMBkPi0XQOjaUiTs81ZgTYh7S7oxCFz2t6YwIrTYkadW8FyHaV2+VpF5PxLsQtqFvoYTWf2W0QcE1aPkXNRDvtp6LWm8J2rp44In3aGcLZA0dtB+kpnV23EooynI297cV5WEWJuUJfVGU5mxAc51Fyw4fHOcRjag0DXwBkFxiJT7ME5ZOqIWQtnC9ajmqQZRVF0k/5DTnJj11aAgdS8/pPYMR5JrjRdDga1h9H6iU5ikcdUYe1cdQc81Jl+ZDJ5lM5UrTneKAuWkAk/bzvrA2ael9nfAlayXppWCLl20wP6Hmt4DAI1gGEhjpp5OAK5E18VlQTb3ZgebiKu/RcmpvJoboY0nxRhLtvhFJ6DFoJNWndVDJ3X7A1cizuv1XmFTEVkXQ9ZjNXaFH/6daKrPu04VmIGvPUWxOZGPMxOPkYaCNpk7p0+vO8mCgfw0ZgiY6qObzdvqj25W4f/fLztQ6xRNrQ==
+  template:
+    metadata:
+      name: maddy-dkim
+      namespace: maddy
