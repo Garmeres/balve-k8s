@@ -58,7 +58,6 @@ data:
                         domains $(primary_domain)
                         selector default
                         key_path /data/dkim_keys/{domain}_{selector}.key
-                        require_sender_match off
                     }
                 }
                 deliver_to &remote_queue
