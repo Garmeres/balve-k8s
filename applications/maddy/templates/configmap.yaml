@@ -53,7 +53,13 @@ data:
         default_source {
             default_destination {
                 modify {
-                    dkim $(primary_domain) $(primary_domain) default
+                    dkim {
+                        debug yes
+                        domains $(primary_domain)
+                        selector default
+                        key_path /data/dkim_keys/{domain}_{selector}.key
+                        require_sender_match off
+                    }
                 }
                 deliver_to &remote_queue
             }
