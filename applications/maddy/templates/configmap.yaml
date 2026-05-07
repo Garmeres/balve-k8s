@@ -43,16 +43,6 @@ data:
         }
     }
 
-    # Message pipeline — sign with DKIM then deliver
-    msgpipeline outbound_pipeline {
-        default_destination {
-            modify {
-                dkim $(primary_domain) $(primary_domain) default
-            }
-            deliver_to &remote_queue
-        }
-    }
-
     # Submission endpoint — no auth required (cluster-internal only)
     smtp tcp://0.0.0.0:587 {
         limits {
